@@ -1124,19 +1124,19 @@ function durOf(p){
   if(/antik|ören|arkeolojik|höyük|kale|hisar|saray|tiyatro/i.test(t))return 75;
   return 40;
 }
-async function wdPlaces(bb){
-  const [s,n,w,e]=bb;
+async function wdPlaces(bb,minSl,lim,ms,tries){
+  const [s,n,w,e]=bb;minSl=minSl||1;lim=lim||400;
   const q=`SELECT ?item ?label ?coord ?sl ?img ?tl ?tr WHERE {
  SERVICE wikibase:box { ?item wdt:P625 ?coord . bd:serviceParam wikibase:cornerSouthWest "Point(${w} ${s})"^^geo:wktLiteral ; wikibase:cornerNorthEast "Point(${e} ${n})"^^geo:wktLiteral . }
- ?item wikibase:sitelinks ?sl . FILTER(?sl>=1)
+ ?item wikibase:sitelinks ?sl . FILTER(?sl>=${minSl})
  ?item wdt:P31 ?type .
  FILTER(?type NOT IN (wd:Q532,wd:Q1529096,wd:Q17051044,wd:Q123705,wd:Q3957,wd:Q1147395,wd:Q48336,wd:Q15284,wd:Q2039348,wd:Q3914,wd:Q9842,wd:Q483110,wd:Q1248784,wd:Q4022,wd:Q8502,wd:Q55488,wd:Q79007,wd:Q34442,wd:Q12323,wd:Q11303,wd:Q515,wd:Q486972,wd:Q2074737,wd:Q1093829,wd:Q15127012,wd:Q13417250,wd:Q4830453,wd:Q3918,wd:Q875538,wd:Q5))
  OPTIONAL { ?item wdt:P18 ?img }
  OPTIONAL { ?type rdfs:label ?tl . FILTER(lang(?tl)='tr') }
  OPTIONAL { ?art schema:about ?item ; schema:isPartOf <https://tr.wikipedia.org/> ; schema:name ?tr }
  SERVICE wikibase:label { bd:serviceParam wikibase:language "tr,en". ?item rdfs:label ?label . }
-} ORDER BY DESC(?sl) LIMIT 400`;
-  const j=await fetchJ('https://query.wikidata.org/sparql?format=json&query='+encodeURIComponent(q),{headers:{Accept:'application/sparql-results+json'}},2,30000);
+} ORDER BY DESC(?sl) LIMIT ${lim}`;
+  const j=await fetchJ('https://query.wikidata.org/sparql?format=json&query='+encodeURIComponent(q),{headers:{Accept:'application/sparql-results+json'}},tries||2,ms||30000);
   const by={};
   for(const b of j.results.bindings){
     const id='q'+b.item.value.split('/').pop();
@@ -1147,7 +1147,7 @@ async function wdPlaces(bb){
   const out=[];
   for(const o of Object.values(by)){
     if(/^Q\d+$/.test(o.n))continue;
-    const tls=[...o.tls];if(tls.some(t=>BAD_RE.test(t)))continue;
+    const tls=[...o.tls];
     let kind=null,tl='';for(const t of tls){const k=kindOf(t);if(k){kind=k;tl=t;break}}
     if(!kind){const k=kindOf(o.n);if(k&&k!=='nature'){kind=k;tl=''}}
     if(!kind)continue;
@@ -1162,7 +1162,9 @@ async function plPool(to){
   const [s,n,w,e]=to.bb,inBB=p=>p.lat>=s&&p.lat<=n&&p.lon>=w&&p.lon<=e;
   const cur=G.filter(p=>p.lat!=null&&inBB(p)).map(p=>({...p,kind:p.c==='museum'?'museum':/cami/i.test(p.n)?'worship':'hist',sl:5,tl:p.sub}));
   const X=0.3,big=[s-X,n+X,w-X*1.3,e+X*1.3];
-  let wd=[];try{wd=await wdPlaces(big)}catch(e){}
+  const [ri,ro]=await Promise.allSettled([wdPlaces(to.bb),wdPlaces(big,3,150,25000,1)]);
+  const inner=ri.status==='fulfilled'?ri.value:[],outer=ro.status==='fulfilled'?ro.value:[];
+  const ids=new Set(inner.map(p=>p.id));let wd=[...inner,...outer.filter(p=>!ids.has(p.id))];
   wd.forEach(p=>{p.out=!inBB(p)});
   wd=wd.filter(p=>!(p.sl<2&&/çeşme|sebil|kitabe|mezar taşı/i.test((p.tl||'')+' '+p.n)));
   const core=s=>norm(s).replace(/camii|cami|muzesi|kalesi/g,'');
