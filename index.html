@@ -81,6 +81,8 @@ input{flex:1}
 table.t{width:100%;border-collapse:collapse;font-size:15px}table.t td{padding:4px 0}table.t td:last-child{text-align:right;white-space:nowrap}
 .empty{padding:14px;color:var(--mute);font-size:15px}
 a{color:var(--teal)}
+.gal{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;margin-bottom:6px}.gal figure{margin:0;flex:0 0 88%;scroll-snap-align:start;position:relative}.gal img{width:100%;height:220px;object-fit:cover;border-radius:10px;display:block;margin:0;max-height:none}.gal .cr{position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.55);color:#fff;padding:1px 6px;border-radius:6px;margin:0;text-decoration:none;font-size:11px}
+.vids{display:grid;gap:4px}.vid{position:relative;border-radius:10px;overflow:hidden;cursor:pointer;background:#000;aspect-ratio:16/9;margin-top:6px}.vid img{width:100%;height:100%;object-fit:cover;margin:0;max-height:none;border-radius:0}.vid .play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:56px;height:56px;border-radius:50%;background:rgba(179,38,30,.92);color:#fff;display:grid;place-items:center;font-size:22px}.vid small{position:absolute;left:0;right:0;bottom:0;padding:6px 8px;background:linear-gradient(transparent,rgba(0,0,0,.8));color:#fff;font-size:13px}.vid iframe{width:100%;height:100%;border:0;display:block}
 .leaflet-container{font:inherit}
 </style>
 </head>
@@ -159,6 +161,7 @@ a{color:var(--teal)}
     <div class="tip"><b>HGS: Gaziantep Doğu – Şanlıurfa otoyolu (120 km)</b>
       <table class="t"><tr><td>Otomobil, tek yön</td><td><b>101,65 TL</b></td></tr><tr><td>Otomobil, gidiş-dönüş</td><td><b>203,30 TL</b></td></tr><tr><td>Hafif ticari, tek yön</td><td>120,47 TL</td></tr><tr><td>Motosiklet, tek yön</td><td>45,18 TL</td></tr></table>
       <span class="note">2026 KGM tarifesi, en uzak mesafe, KDV dahil. Bakiye yetmezse ihlalli geçiş kaydı oluşur; 15 gün içinde ödenirse yalnızca geçiş ücreti alınır.</span></div>
+    <div class="tip"><b>Müzekart</b>Yıllık 300 TL; 350'den fazla müze ve ören yerine, her birine yılda 2 giriş hakkı verir. e-Devlet ya da Türkiye Müzeleri uygulamasından alınır, gişede kimlikle girilir. Şanlıurfa'da Göbeklitepe, Harran, Şanlıurfa Kalesi, Şanlıurfa Müzesi ve Haleplibahçe'de geçerli. Balıklıgöl çevresi ücretsizdir; Halfeti tekne turu Müzekart kapsamında değildir. 1 Aralık 2026'dan itibaren yeni Müzekart tarifesi uygulanacak.</div>
     <div class="tip"><b>Göbeklitepe</b>2026 tam bilet 450 TL, Müzekart geçerli. Arabayı ören yerinin ~2–2,5 km aşağısındaki Karşılama Merkezi otoparkına bırakın; ücretsiz ring servisi var. Kış saatlerini muze.gov.tr'den kontrol edin.</div>
     <div class="tip"><b>Şanlıurfa merkez otoparkı</b>İlk tercih Arkeoloji Müzesi / Haleplibahçe otoparkı; gerisi yürüyerek. Balıklıgöl çevresindeki otoparklar hafta sonu çabuk dolar.</div>
     <div class="tip"><b>Gezi modu nasıl çalışır?</b>Rotayı oluşturup Geziyi başlat'a basın. Telefon konumunuzu izler; önünüzdeki 4 km içinde tarihî bir yer ya da müze varsa "Uğramak ister misiniz?" diye sorar ve sıradaki akaryakıt istasyonunu gösterir. Ekran açık kalmalıdır.</div>
@@ -300,7 +303,7 @@ async function detail(p,list){
   el.querySelector('[data-act=add]').onclick=()=>{addPoint({n:p.n,lat:p.lat,lon:p.lon},true)};
   // fotoğraf ve özet
   const wk=$('#wiki');
-  if(p.img){wk.innerHTML='<img src="https://commons.wikimedia.org/wiki/Special:FilePath/'+encodeURIComponent(p.img)+'?width=900" alt="'+esc(p.n)+'" loading="lazy" onerror="this.remove()"><div class="cr">Foto: '+esc(p.by)+' / Wikimedia Commons</div>'}
+  if(p.img||GAL[p.id]){wk.innerHTML=gallery(p.id,p.img)+(p.cur?mkBox(p.id):'')+videos(p.id)}else if(p.cur&&MK[p.id]){wk.innerHTML=mkBox(p.id)}
   else if(t.wikipedia&&/^tr:/.test(t.wikipedia)){
     try{const s=await fetchJ('https://tr.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(t.wikipedia.slice(3).replace(/ /g,'_')),{},1);
       if($('#wiki')===wk)wk.innerHTML=(s.thumbnail?'<img src="'+esc(s.originalimage?.source||s.thumbnail.source)+'" alt="'+esc(p.n)+'" loading="lazy">':'')+(s.extract?'<p style="margin:4px 0 8px">'+esc(s.extract)+'</p>':'')+'<div class="cr">Kaynak: <a target="_blank" rel="noopener" href="'+esc(s.content_urls?.mobile?.page||'#')+'">Vikipedi</a></div>';
@@ -631,11 +634,31 @@ function sayFor(a,b){
 }
 const hm=x=>String(Math.floor(x/60)%24).padStart(2,'0')+':'+String(Math.round(x)%60).padStart(2,'0');
 const img=(f,w)=>'https://commons.wikimedia.org/wiki/Special:FilePath/'+encodeURIComponent(f)+'?width='+w;
+const GAL={gobekli:['Archäologiepark_Göbekli_Tepe.jpg','Göbeklitepe_Building_D_5351.jpg','Göbekli_Tepe_Pilar_Arm_and_Fox.JPG','Göbeklitepe_Building_D_5323.jpg','Göbekli2012-15.jpg','Urfa_museum_Gobeklitepe_Temple_D_replica_sept_2019_4839.jpg'],
+halfeti:['Old_Halfeti_05.jpg','Halfeti_on_the_Euphrates.jpg','Halfeti_-_Savasan_köyü.jpg','Rumkale_25_05_2010_Savaşan.jpg','Rumkale_Fortress,_Halfeti.jpg','Rumkale_09_04_2004_Eski_Halfeti.jpg'],
+gol:['Balıklıgöl_Urfa2.jpg','Balikli_Göl_03.jpg','Şanlıurfa_balıklı_anzeliha_gölü.jpg','Halil_Ür-Rahman_Camii_9397.jpg','Mevlid-i_Halil_Mosque_19.jpg','Urfa_Castle_02.jpg']};
+const VID={gobekli:[['-3sEdIqrHME','Göbeklitepe kısa belgesel (2013)'],['rGzYaOIk6cA','Göbeklitepe: Uncovering']],halfeti:[['yKi360gcn04','Rumkale ve Halfeti tekne turu'],['nOChqIQf2uc','Atlantis\'in Çocukları: Halfeti sualtı']],gol:[['ECmpnhx637U','Balıklıgöl\'ün hikâyesi (TRT)'],['FPSCwSVEi-A','Şanlıurfa Balıklıgöl']]};
+const MK={
+gobekli:['Tam bilet 450 TL (2026)','Müzekart geçerli: standart kartla yılda 2 giriş','Öğrenci ve öğretmenler ücretsiz','Bilet Karşılama Merkezi gişesinden; gişe kapanıştan 30 dk önce kapanır'],
+muze:['Şanlıurfa Müzesi ve Haleplibahçe Mozaik Müzesi Kültür ve Turizm Bakanlığı müzeleri; Müzekart geçerli','Bilet ücretini gişede teyit edin'],
+mozaik:['Müzekart geçerli; Şanlıurfa Müzesi ile aynı yerleşkede'],
+harran:['Harran Ören Yeri Bakanlığa bağlı; Müzekart geçerli','Ziyaret 08:00-17:00, gişe 16:30\'da kapanır','18 yaş altı T.C. vatandaşları ücretsiz'],
+kale:['Şanlıurfa Kalesi\'nde Müzekart geçerli'],
+gol:['Balıklıgöl, Ayn-ı Zeliha ve göl çevresindeki camiler ücretsiz','Mevlid-i Halil Camii ve mağara ücretsiz; kıyafet kuralı var','Urfa Kalesi\'ne çıkış biletli; Müzekart geçerli','Gümrük Hanı ve çarşı serbest'],
+halfeti:['Halfeti\'de müze bileti yok; Müzekart burada kullanılmaz','Tekne turu ücretli; fiyatı binmeden kaptana sorun','Rumkale genellikle tekneden görülür; kaleye çıkmak isterseniz güncel ziyaret durumunu sorun'],
+eyup:['Hz. Eyüp Makamı ücretsiz ziyaretgâh'],
+halil:['Ücretsiz; namaz vakitlerine dikkat'],rizvaniye:['Ücretsiz; namaz vakitlerine dikkat'],mevlid:['Ücretsiz; kıyafet kuralı var'],gumruk:['Giriş serbest'],
+karahan:['Bakanlığa bağlı ören yeri; ziyaret durumunu ve bileti gitmeden kontrol edin']};
+const gkey=id=>String(id).replace(/^g_/,'');
+function gallery(key,fallback){const L=GAL[key]||(fallback?[fallback]:[]);if(!L.length)return'';return '<div class="gal">'+L.map((f,i)=>'<figure><img src="https://commons.wikimedia.org/wiki/Special:FilePath/'+encodeURIComponent(f)+'?width='+(i?700:900)+'" alt="" loading="lazy" onerror="this.parentNode.remove()"><a class="cr" target="_blank" rel="noopener" href="https://commons.wikimedia.org/wiki/File:'+encodeURIComponent(f)+'">Wikimedia Commons</a></figure>').join('')+'</div>'+(L.length>1?'<div class="note" style="margin:0 0 6px">Sağa kaydırarak '+L.length+' fotoğrafı görün</div>':'')}
+function mkBox(key){const m=MK[key];return m?'<div class="tip" style="margin:10px 0"><b>Müzekart ve giriş</b><ul style="margin:4px 0 0;padding-left:18px">'+m.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>':''}
+function videos(key){const v=VID[key];if(!v)return'';return '<h4 style="margin:12px 0 4px;font-size:16px">Tanıtım videoları</h4><div class="vids">'+v.map(([id,t])=>'<div class="vid" data-vid="'+id+'"><img src="https://i.ytimg.com/vi/'+id+'/hqdefault.jpg" alt="" loading="lazy"><span class="play">▶</span><small>'+esc(t)+'</small></div><a class="note" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v='+id+'">Açılmazsa YouTube\'da izleyin</a>').join('')+'</div>'}
+document.addEventListener('click',e=>{const v=e.target.closest('.vid');if(v&&!v.querySelector('iframe')){v.innerHTML='<iframe src="https://www.youtube-nocookie.com/embed/'+v.dataset.vid+'?autoplay=1&rel=0&playsinline=1" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen title="Video"></iframe>'}});
 function guideBody(s){
-  return (s.img?'<img src="'+img(s.img,900)+'" alt="'+esc(s.n)+'" loading="lazy" onerror="this.remove()"><div class="cr">Foto: '+esc(s.by)+' / Wikimedia Commons</div>':'')+
+  return gallery(gkey(s.id),s.img)+mkBox(gkey(s.id))+
     s.sec.map(([h,p])=>'<h4 style="margin:12px 0 4px;font-size:16px">'+esc(h)+'</h4><p style="margin:0">'+esc(p)+'</p>').join('')+
     '<h4 style="margin:12px 0 4px;font-size:16px">Gezerken sırasıyla</h4><ol style="margin:0;padding-left:20px">'+s.see.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ol>'+
-    '<div class="tip" style="margin:10px 0 0"><b>Not</b>'+esc(s.tip)+'</div>';
+    '<div class="tip" style="margin:10px 0 0"><b>Not</b>'+esc(s.tip)+'</div>'+videos(gkey(s.id));
 }
 function navBtns(to,speakId){
   return '<a class="btn sm" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&travelmode=driving&destination='+encodeURIComponent(to)+'">Google ile yol tarifi</a><a class="btn sm alt" target="_blank" rel="noopener" href="https://yandex.com.tr/maps/?rtext=~'+encodeURIComponent(to)+'&rtt=auto">Yandex ile</a>'+(speakId?'<button class="btn sm red" data-speak="'+speakId+'">'+(speaking===speakId?'Anlatımı durdur':'Sesli anlat')+'</button>':'');
