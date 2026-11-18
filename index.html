@@ -1129,8 +1129,9 @@ async function wdPlaces(bb,minSl,lim,ms,tries){
   const q=`SELECT ?item ?label ?coord ?sl ?img ?tl ?tr WHERE {
  SERVICE wikibase:box { ?item wdt:P625 ?coord . bd:serviceParam wikibase:cornerSouthWest "Point(${w} ${s})"^^geo:wktLiteral ; wikibase:cornerNorthEast "Point(${e} ${n})"^^geo:wktLiteral . }
  ?item wikibase:sitelinks ?sl . FILTER(?sl>=${minSl})
+ ?item wdt:P17 wd:Q43 .
  ?item wdt:P31 ?type .
- FILTER(?type NOT IN (wd:Q532,wd:Q1529096,wd:Q17051044,wd:Q123705,wd:Q3957,wd:Q1147395,wd:Q48336,wd:Q15284,wd:Q2039348,wd:Q3914,wd:Q9842,wd:Q483110,wd:Q1248784,wd:Q4022,wd:Q8502,wd:Q55488,wd:Q79007,wd:Q34442,wd:Q12323,wd:Q11303,wd:Q515,wd:Q486972,wd:Q2074737,wd:Q1093829,wd:Q15127012,wd:Q13417250,wd:Q4830453,wd:Q3918,wd:Q875538,wd:Q5))
+ FILTER(?type NOT IN (wd:Q34770,wd:Q33742,wd:Q1288568,wd:Q25295,wd:Q45762,wd:Q1371849,wd:Q532,wd:Q1529096,wd:Q17051044,wd:Q123705,wd:Q3957,wd:Q1147395,wd:Q48336,wd:Q15284,wd:Q2039348,wd:Q3914,wd:Q9842,wd:Q483110,wd:Q1248784,wd:Q4022,wd:Q8502,wd:Q55488,wd:Q79007,wd:Q34442,wd:Q12323,wd:Q11303,wd:Q515,wd:Q486972,wd:Q2074737,wd:Q1093829,wd:Q15127012,wd:Q13417250,wd:Q4830453,wd:Q3918,wd:Q875538,wd:Q5))
  OPTIONAL { ?item wdt:P18 ?img }
  OPTIONAL { ?type rdfs:label ?tl . FILTER(lang(?tl)='tr') }
  OPTIONAL { ?art schema:about ?item ; schema:isPartOf <https://tr.wikipedia.org/> ; schema:name ?tr }
@@ -1157,7 +1158,7 @@ async function wdPlaces(bb,minSl,lim,ms,tries){
 }
 function plInts(){return [...document.querySelectorAll('#plInt [data-i]')].filter(b=>b.getAttribute('aria-pressed')==='true').map(b=>b.dataset.i)}
 $('#plInt').onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;b.setAttribute('aria-pressed',b.getAttribute('aria-pressed')==='true'?'false':'true')};
-function plScore(p){return (p.cur?100:0)+p.sl*3+(p.img?3:0)+(p.w?2:0)+({museum:4,hist:3,nature:3,worship:-2}[p.kind]||0)-(p.dur<=15?3:0)}
+function plScore(p){return (p.cur?100:0)+Math.min(p.sl,25)*3+(p.img?3:0)+(p.w?2:0)+({museum:4,hist:3,nature:3,worship:-2}[p.kind]||0)-(p.dur<=15?3:0)}
 async function plPool(to){
   const [s,n,w,e]=to.bb,inBB=p=>p.lat>=s&&p.lat<=n&&p.lon>=w&&p.lon<=e;
   const cur=G.filter(p=>p.lat!=null&&inBB(p)).map(p=>({...p,kind:p.c==='museum'?'museum':/cami/i.test(p.n)?'worship':'hist',sl:5,tl:p.sub}));
