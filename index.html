@@ -1148,7 +1148,7 @@ async function wdPlaces(bb,minSl,lim,ms,tries){
   const out=[];
   for(const o of Object.values(by)){
     if(/^Q\d+$/.test(o.n)||/\bgar[ıi](?![a-zçğıöşü])|istasyon|havaliman|havaalan|stadyum|üniversite|hastane|lisesi|okulu|terminal|otogar/i.test(o.n))continue;
-    const tls=[...o.tls];
+    const tls=[...o.tls];if(tls.some(t=>/\bdil\b|dili\b|lehçe|dil ailesi|etnik|\bhalk\b|halkı|\bdin\b|mezhep|savaş|muharebe|kuşatma|deprem|kaza|faciası|olay|antlaşma|hanedan|devlet\b|imparatorluk|eyalet|krallık/i.test(t)))continue;
     let kind=null,tl='';for(const t of tls){const k=kindOf(t);if(k){kind=k;tl=t;break}}
     if(!kind){const k=kindOf(o.n);if(k&&k!=='nature'){kind=k;tl=''}}
     if(!kind)continue;
@@ -1183,7 +1183,8 @@ function plBuild(P){
     const dayEnd=18.5*60;
     while(rem.length&&cnt<per){
       let best=null,bs=-1;
-      for(const p of rem){if(p.kind==='worship'&&wor>=2&&p.sl<5)continue;if(p.dur<=15&&!p.cur&&sm>=2)continue;const dk=hav(cur,[p.lat,p.lon])/1000;const s=p.score/(1+dk/(cnt===0&&d===0?1e4:4));if(s>bs){bs=s;best=p}}
+      const ref=(cnt===0&&d===0)?[P.to.lat,P.to.lon]:cur;
+      for(const p of rem){if(p.kind==='worship'&&wor>=2&&p.sl<5)continue;if(p.dur<=15&&!p.cur&&sm>=2)continue;const dk=hav(ref,[p.lat,p.lon])/1000;const s=p.score/(1+dk/(cnt===0&&d===0?12:4));if(s>bs){bs=s;best=p}}
       if(!best)break;
       const dist=hav(cur,[best.lat,best.lon]),leg=estDrive(dist)/60;
       if(!lunch&&cnt>0&&t+leg>=12.5*60){items.push({k:'lunch',t,loc:cur.slice()});t+=60;lunch=true}
@@ -1239,6 +1240,7 @@ function plRender(P,days,tot){
         const p=x.p,th=plThumb(p);
         if(x.dist>20000){const mid=x.from||null;h+='<div class="pit drv"><span class="tm"></span><div class="bd"><b>🚗 '+fKm(x.dist)+' yol · '+fMin(x.leg*60)+'</b>'+(x.dist>180000?'<small>⛽ Yolun ortasında yakıt ve mola verin.</small>':'')+'</div></div>'}
         h+='<div class="pit"><span class="tm">'+phm(x.t)+'</span>'+(th?'<img src="'+esc(th)+'" alt="" loading="lazy" onerror="this.remove()">':'')+'<div class="bd"><b><span class="pnum">'+(x.no||'')+'</span>'+esc(p.n)+'</b><small>'+esc(p.tl||p.sub||'')+' · ~'+p.dur+' dk gezi'+(x.dist<=20000&&x.dist>300?' · önceki duraktan '+fKm(x.dist)+', '+fMin(x.leg*60):'')+'</small>'+(p.cur?'<div style="margin-top:4px">'+feeBadge(gkey(p.id))+'</div>':'')+
+          (x.t>19*60?'<small style="color:#b3261e">⚠ Akşam geç saate kalıyor; bu durağı ✕ ile çıkarın ya da gün sayısını artırın.</small>':(p.kind==='museum'&&x.t>16.5*60?'<small style="color:#b3261e">⚠ Müze bu saatte kapanmış olabilir; saatleri kontrol edin.</small>':''))+
           '<div class="btns"><button class="btn sm" data-pl="info" data-id="'+esc(p.id)+'">Tanıtım</button><a class="btn sm alt" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination='+p.lat+','+p.lon+'">Yol tarifi</a><button class="btn sm alt" data-pl="del" data-id="'+esc(p.id)+'" aria-label="Çıkar">✕</button></div></div></div>';
       }else if(x.k==='lunch'){
         h+='<div class="pit meal"><span class="tm">'+phm(x.t)+'</span><div class="bd"><b>🍽 Öğle yemeği (~1 saat)</b><small>Bu noktanın yakınındaki lokantaları haritada görün.</small><div class="btns"><button class="btn sm" data-pl="near" data-k="food" data-ll="'+x.loc.join(',')+'">Yakındaki yemek yerleri</button><button class="btn sm alt" data-pl="near" data-k="cafe" data-ll="'+x.loc.join(',')+'">Kafe / tatlı</button></div></div></div>';
