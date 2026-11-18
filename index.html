@@ -825,14 +825,14 @@ renderToday();
 
 /* ---------- BURADA: konumdaki yeri tur rehberi gibi tanıt ---------- */
 const WL=()=>lang==='en'?'en':'tr';
-const NONHIST=/mahallesi|neighbourhood|ilkokulu|ortaokulu|lisesi|hastanesi|caddesi|bulvarı|sokağı|istasyonu|stadyumu|avm|alışveriş merkezi|belediyesi|üniversitesi|fakültesi|seçim bölgesi|otel|kavşağı|köprülü kavşak|spor kulübü|futbol|merkez,/i;
+const NONHIST=/mahallesi|neighbourhood|ilkokulu|ortaokulu|lisesi|hastanesi|caddesi|bulvarı|sokağı|istasyonu|stadyumu|avm|alışveriş merkezi|belediyesi|üniversitesi|fakültesi|seçim bölgesi|otel|kavşağı|köprülü kavşak|spor kulübü|futbol|merkez,|havalimanı|havaalanı|cezaevi|terminali|garı/i;
 const HISTKW=/cami|mescit|kilise|katedral|manastır|sinagog|han|hamam|kale|sur|türbe|kümbet|medrese|külliye|müze|köprü|çarşı|bedesten|antik|ören|höyük|tepe|kervansaray|saray|konak|mağara|kapı|anıt|göl|tiyatro|zaviye|tekke|çeşme|makam|harabe|kent|tapınak|nekropol|kaya|arkeoloji|mosque|church|castle|museum|bridge|ancient|temple/i;
 const wcache={};
 async function wikiGeo(c,r,lim){
   const l=WL();
   const j=await fetchJ('https://'+l+'.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord='+c[0]+'%7C'+c[1]+'&gsradius='+Math.min(Math.max(r,100),10000)+'&gslimit='+(lim||80)+'&format=json&origin=*',{},1,15000);
   const names=new Set(G.map(p=>norm(p.n)));
-  return (j.query&&j.query.geosearch||[]).filter(g=>!NONHIST.test(g.title)&&!names.has(norm(g.title)))
+  return (j.query&&j.query.geosearch||[]).filter(g=>!NONHIST.test(g.title.toLocaleLowerCase('tr'))&&!names.has(norm(g.title)))
     .map(g=>({id:'w'+g.pageid,n:g.title,lat:g.lat,lon:g.lon,c:HISTKW.test(g.title)?'hist':'view',sub:'Vikipedi',w:g.title,wl:l,hk:HISTKW.test(g.title),tags:{wikipedia:l+':'+g.title},d:g.dist}));
 }
 async function wikiInfo(l,title){
@@ -902,7 +902,7 @@ $('#hereLoc').onclick=()=>{if(!navigator.geolocation){$('#hereStatus').textConte
   navigator.geolocation.getCurrentPosition(p=>{setMe(p.coords.latitude,p.coords.longitude);hereLoad(me,'Konumunuz')},()=>{$('#hereStatus').textContent='Konum izni verilmedi. Tarayıcı ayarlarından izin verin ya da bir yer adı yazın.'},{enableHighAccuracy:true,timeout:15000})};
 $('#hereForm').onsubmit=async e=>{e.preventDefault();const q=$('#hereQ').value.trim();if(!q){$('#hereLoc').click();return}
   const h=aliasHit(q);if(h){hereLoad([h.lat,h.lon],h.n);return}
-  $('#hereStatus').textContent='"'+q+'" aranıyor…';try{const g=await geocode(q);hereLoad([g.lat,g.lon],q)}catch(er){$('#hereStatus').textContent='"'+q+'" bulunamadı. Başka bir yazım deneyin.'}};
+  $('#hereStatus').textContent='"'+q+'" aranıyor…';try{const g=await geocode(q);hereLoad([g.lat,g.lon],q)}catch(er){try{const l=WL();const j=await fetchJ('https://'+l+'.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrlimit=5&gsrsearch='+encodeURIComponent(q)+'&prop=coordinates',{},1,15000);const pg=Object.values(j.query&&j.query.pages||{}).sort((a,b)=>a.index-b.index).find(x=>x.coordinates);if(!pg)throw 0;hereLoad([pg.coordinates[0].lat,pg.coordinates[0].lon],pg.title)}catch(e2){$('#hereStatus').textContent='"'+q+'" bulunamadı. Başka bir yazım deneyin.'}}};
 $('#v-burada').addEventListener('click',e=>{
   const it=e.target.closest('[data-hereid]');if(it){const p=here.items.find(x=>x.id===it.dataset.hereid);if(p){hereShow(p);$('#hereCard').scrollIntoView({behavior:'smooth',block:'start'})}return}
   const z=e.target.closest('[data-herezoom]');if(z){const p=findPlace(z.dataset.herezoom);if(p){if($('#map').classList.contains('small'))$('#mapToggle').click();map.setView([p.lat,p.lon],17);window.scrollTo({top:0,behavior:'smooth'})}return}
