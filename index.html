@@ -1186,7 +1186,7 @@ function plBuild(P){
       const ref=(cnt===0&&d===0)?[P.to.lat,P.to.lon]:cur;
       for(const p of rem){if(p.kind==='worship'&&wor>=2&&p.sl<5)continue;if(p.dur<=15&&!p.cur&&sm>=2)continue;const dk=hav(ref,[p.lat,p.lon])/1000;const s=p.score/(1+dk/(cnt===0&&d===0?12:4));if(s>bs){bs=s;best=p}}
       if(!best)break;
-      const dist=hav(cur,[best.lat,best.lon]),leg=estDrive(dist)/60;
+      const dist=hav(cur,[best.lat,best.lon]),leg=(cnt===0&&d===0&&P.firstLeg)?P.firstLeg/60:estDrive(dist)/60;
       if(!lunch&&cnt>0&&t+leg>=12.5*60){items.push({k:'lunch',t,loc:cur.slice()});t+=60;lunch=true}
       if(t+leg+best.dur>dayEnd&&cnt>0){if(rem.length>1){rem=rem.filter(x=>x!==best);rem.push(best)}break}
       items.push({k:'stop',p:best,t:t+leg,dist,leg});t+=leg+best.dur;cur=[best.lat,best.lon];
@@ -1277,6 +1277,7 @@ async function plRun(fromNew){
       PL.last={toQ,fromQ,from:P.from,to:P.to};
     }else{P.from=PL.last.from;P.to=PL.last.to}
     if(!PL.pool.length){st.textContent=P.to.n+' için gezilecek yer bulunamadı. Daha geniş bir yer (il adı) deneyin.';return}
+    try{const fl=await osrm('car',[[P.from.lat,P.from.lon],[P.to.lat,P.to.lon]],false);P.firstLeg=fl.duration}catch(e){}
     const days=plBuild(P);
     st.textContent='Yol süreleri hesaplanıyor…';
     const tot=await plRefine(P,days);
