@@ -84,24 +84,48 @@ a{color:var(--teal)}
 .gal{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;margin-bottom:6px}.gal figure{margin:0;flex:0 0 88%;scroll-snap-align:start;position:relative}.gal img{width:100%;height:220px;object-fit:cover;border-radius:10px;display:block;margin:0;max-height:none}.gal .cr{position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.55);color:#fff;padding:1px 6px;border-radius:6px;margin:0;text-decoration:none;font-size:11px}
 .vids{display:grid;gap:4px}.vid{position:relative;border-radius:10px;overflow:hidden;cursor:pointer;background:#000;aspect-ratio:16/9;margin-top:6px}.vid img{width:100%;height:100%;object-fit:cover;margin:0;max-height:none;border-radius:0}.vid .play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:56px;height:56px;border-radius:50%;background:rgba(179,38,30,.92);color:#fff;display:grid;place-items:center;font-size:22px}.vid small{position:absolute;left:0;right:0;bottom:0;padding:6px 8px;background:linear-gradient(transparent,rgba(0,0,0,.8));color:#fff;font-size:13px}.vid iframe{width:100%;height:100%;border:0;display:block}
 .leaflet-container{font:inherit}
+header .brand{flex:1;display:flex;flex-direction:column;line-height:1.1}
+header .brand small{font-size:12px;opacity:.75;font-weight:400}
+header select{min-height:38px;background:rgba(255,255,255,.14);color:#fff;border:0;border-radius:10px;padding:0 8px;font:500 14px Rubik,sans-serif}
+header select option{color:#1f2a29}
+@media(max-width:480px){header .brand small{display:none}header{gap:6px}header button{padding:0 9px}}
+#agBtn.on{background:#ffd28a;color:#1f2a29}
+#agBar{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:1100;background:#14211f;color:#fff;border-radius:16px;padding:10px 12px;box-shadow:0 10px 30px rgba(0,0,0,.35);display:none;max-width:736px;margin:0 auto}
+#agBar.on{display:block}
+#agBar .top{display:flex;align-items:center;gap:10px}
+#agBar .eq{width:34px;height:34px;border-radius:50%;background:#ffd28a;color:#1f2a29;display:grid;place-items:center;font-size:17px;flex:none}
+#agBar.play .eq{animation:pulse 1.2s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 8px rgba(255,210,138,.25)}}
+#agBar b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#agBar small{display:block;font-size:12.5px;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#agBar .btns{display:flex;gap:6px;margin-top:8px}
+#agBar .btn{background:rgba(255,255,255,.14);color:#fff;flex:1}
+.cityhero{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;margin:8px 0}
+.cityhero img{width:84px;height:64px;object-fit:cover;border-radius:10px;flex:none}
+.cityhero b{display:block;font-size:17px}.cityhero span{font-size:13px;color:var(--mute)}
+.seg{display:flex;gap:6px;margin:6px 0}
+.seg{flex-wrap:wrap}.seg button{flex:1 1 40%;font-size:13px;padding:0 6px}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 </style>
 </head>
 <body>
 <header>
-  <h1>Gezi Rotam</h1>
-  <button id="locBtn">Konumum</button>
-  <button id="mapToggle">Haritayı gizle</button>
+  <div class="brand"><b style="font-size:19px;font-weight:800" data-i18n="app">Gezi Rotam</b><small data-i18n="tagline">Tarihî yerler rehberi</small></div>
+  <select id="citySel" aria-label="Şehir"></select>
+  <button id="agBtn" type="button" data-i18n="ag">🎧 Sesli</button>
+  <button id="locBtn" data-i18n="loc" aria-label="Konumum">📍</button>
+  <button id="mapToggle" aria-label="Haritayı gizle/göster">🗺</button>
 </header>
 <div id="map"></div>
 
 <div class="wrap">
   <div id="tripbar"></div>
   <div class="tabs" role="tablist">
-    <button class="tab" data-v="bugun" aria-selected="true">Bugün</button>
-    <button class="tab" data-v="yakin" aria-selected="false">Yakınımda</button>
-    <button class="tab" data-v="rota" aria-selected="false">Rota</button>
-    <button class="tab" data-v="rehber" aria-selected="false">Urfa rehberi</button>
-    <button class="tab" data-v="bilgi" aria-selected="false">Bilgi</button>
+    <button class="tab" data-v="bugun" aria-selected="true" data-i18n="t_today">Bugün</button>
+    <button class="tab" data-v="yakin" aria-selected="false" data-i18n="t_near">Yakınımda</button>
+    <button class="tab" data-v="rota" aria-selected="false" data-i18n="t_route">Rota</button>
+    <button class="tab" data-v="rehber" aria-selected="false" data-i18n="t_guide">Rehber</button>
+    <button class="tab" data-v="bilgi" aria-selected="false" data-i18n="t_info">Bilgi</button>
   </div>
 
   <!-- YAKINIMDA -->
@@ -152,6 +176,13 @@ a{color:var(--teal)}
 
   <!-- URFA REHBERİ -->
   <section class="view" id="v-rehber">
+    <div class="cityhero" id="cityHero"></div>
+    <div class="tip" id="agTip"><b data-i18n="ag_title">Yaklaşınca sesli anlatım</b><span data-i18n="ag_help">Üstteki 🎧 Sesli düğmesine bir kez basın. Telefon konumunuzu izler; bu listedeki bir yere yaklaştığınızda anlatım kendiliğinden başlar. Ekran açık kalır; telefonu cebe koymadan önce sesi açın.</span>
+      <div class="note" style="margin-top:8px" data-i18n="ag_when">Ne zaman anlatsın?</div>
+      <div class="seg" id="agMode"><button class="btn alt sm" data-m="auto" type="button" data-i18n="m_auto">Yaklaşınca</button><button class="btn alt sm" data-m="arrive" type="button" data-i18n="m_arrive">Mekâna varınca</button><button class="btn alt sm" data-m="ask" type="button" data-i18n="m_ask">Önce sor</button><button class="btn alt sm" data-m="off" type="button" data-i18n="m_off">Kendiliğinden başlamasın</button></div>
+      <div class="row2"><select id="agVoiceSel" aria-label="Ses" style="flex:1"></select><button class="btn sm alt" id="agTest" type="button" data-i18n="ag_test">Sesi dene</button></div>
+      <div class="row2"><label class="note" for="agRate" data-i18n="ag_rate">Konuşma hızı</label><input type="range" id="agRate" min="0.7" max="1.3" step="0.05" style="flex:1;min-height:30px;padding:0"></div>
+      <span class="note" id="agVoiceNote"></span></div>
     <div class="status" id="guideStatus">Doğrulanmış bilgiler ve fotoğraflar. Mesafeler konumunuzdan (konum yoksa Balıklıgöl'den).</div>
     <div class="list" id="guideList"></div>
   </section>
@@ -166,11 +197,13 @@ a{color:var(--teal)}
     <div class="tip"><b>Şanlıurfa merkez otoparkı</b>İlk tercih Arkeoloji Müzesi / Haleplibahçe otoparkı; gerisi yürüyerek. Balıklıgöl çevresindeki otoparklar hafta sonu çabuk dolar.</div>
     <div class="tip"><b>Gezi modu nasıl çalışır?</b>Rotayı oluşturup Geziyi başlat'a basın. Telefon konumunuzu izler; önünüzdeki 4 km içinde tarihî bir yer ya da müze varsa "Uğramak ister misiniz?" diye sorar ve sıradaki akaryakıt istasyonunu gösterir. Ekran açık kalmalıdır.</div>
     <div class="tip"><b>Veriler nereden geliyor?</b>Harita, yerler ve yollar OpenStreetMap'ten; rota ve yürüyüş/araç süreleri OSRM'den; tarihî yer özetleri ve fotoğraflar Vikipedi ve Wikimedia Commons'tan; canlı trafik Yandex'ten. Hepsi ücretsizdir. OSM'de puan ve yorum yoktur.</div>
+    <div class="tip"><b data-i18n="lang">Dil / Language</b><div class="seg" id="langSeg"><button class="btn alt sm" data-lang="tr" type="button">Türkçe</button><button class="btn alt sm" data-lang="en" type="button">English (beta)</button></div><span class="note" data-i18n="lang_note">İçerik şimdilik Türkçe; İngilizce arayüz hazırlanıyor.</span></div>
     <button class="btn alt" id="clearBtn" type="button">Kayıtlı rotayı sil</button>
   </section>
 </div>
 
 <div id="prompt" role="alertdialog" aria-live="assertive"></div>
+<div id="agBar" aria-live="polite"><div class="top"><span class="eq">🎧</span><span style="flex:1;min-width:0"><b id="agNow">Sesli rehber açık</b><small id="agNext">Konum bekleniyor…</small></span></div><div class="btns" id="agAsk" hidden><button class="btn sm" id="agYes" type="button" style="background:#ffd28a;color:#1f2a29">▶ Dinle</button><button class="btn sm" id="agNo" type="button">Geç</button></div><div class="btns" id="agCtl"><button class="btn sm" id="agPause" type="button" data-i18n="ag_pause">Durdur</button><button class="btn sm" id="agSkip" type="button" data-i18n="ag_skip">Atla</button><button class="btn sm" id="agOff" type="button" data-i18n="ag_off">Kapat</button></div></div>
 <div class="modal" id="modal"><div class="box"><div class="hd"><span id="mTitle">Canlı trafik</span><button class="btn sm alt" id="mClose" type="button">Kapat</button></div><iframe id="mFrame" title="Canlı trafik"></iframe></div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -231,7 +264,7 @@ const map=L.map('map',{zoomControl:true}).setView([37.15,38.79],8);
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap katkıcıları'}).addTo(map);
 const poiLayer=L.layerGroup().addTo(map),routeLayer=L.layerGroup().addTo(map),ptLayer=L.layerGroup().addTo(map);
 let meMarker=null;
-$('#mapToggle').onclick=()=>{const m=$('#map');m.classList.toggle('small');$('#mapToggle').textContent=m.classList.contains('small')?'Haritayı göster':'Haritayı gizle';setTimeout(()=>map.invalidateSize(),300)};
+$('#mapToggle').onclick=()=>{const m=$('#map');m.classList.toggle('small');$('#mapToggle').textContent=m.classList.contains('small')?'🗺':'🗺';setTimeout(()=>map.invalidateSize(),300)};
 
 /* ---------- durum ---------- */
 let me=null;                 // [lat,lon] gerçek konum
@@ -295,6 +328,7 @@ async function detail(p,list){
     '<div class="btns">'+
       '<button class="btn sm" data-act="zoom">Haritada</button>'+
       '<button class="btn sm alt" data-act="add">Rotaya ekle</button>'+
+      (p.cur?'<button class="btn sm red" data-agplay="'+esc(p.id)+'">🎧 Dinle</button>':'')+
       '<a class="btn sm alt" target="_blank" rel="noopener" href="'+g+'">Google</a>'+
       '<a class="btn sm alt" target="_blank" rel="noopener" href="'+y+'">Yandex</a>'+
       (web?'<a class="btn sm alt" target="_blank" rel="noopener" href="'+esc(web)+'">Web sitesi</a>':'')+
@@ -485,6 +519,42 @@ function traffic(){
 $('#trafficBtn').onclick=traffic;$('#trafficBtn2').onclick=traffic;
 $('#mClose').onclick=()=>{$('#modal').classList.remove('on');$('#mFrame').src='about:blank'};
 
+/* ---------- şehirler + Gaziantep içeriği ---------- */
+const CITY={urfa:{n:'Şanlıurfa',c:[37.1477,38.7844],ref:'Balıklıgöl',img:'Balıklıgöl_Urfa2.jpg',d:'Göbeklitepe, Balıklıgöl, Harran, Halfeti'},
+ antep:{n:'Gaziantep',c:[37.0665,37.3832],ref:'Gaziantep Kalesi',img:'Gaziantep_castle.JPG',d:'Zeugma, Kale, Bedesten, Yesemek, Rumkale'}};
+let city=store.get('city','urfa');if(!CITY[city])city='urfa';
+const GA_LIST=[
+{id:'zeugmam',n:'Zeugma Mozaik Müzesi',lat:37.07558,lon:37.38561,c:'museum',r:250,sub:'Müze · Çingene Kızı mozaiği',img:'The_Gypsy_Girl_Mosaic_of_Zeugma_with_bg.jpg',
+ facts:['9 Eylül 2011\'de açıldı; yaklaşık 30.000 metrekarelik bir alanda.','Eserlerin çoğu Fırat kıyısındaki antik Zeugma kentinin villalarından çıkarıldı.','En ünlü eseri MS 2. yüzyıla tarihlenen Çingene Kızı mozaiği; 2018\'de ABD\'den iade edilen 12 parçayla sergide.','Mars (Ares) heykeli, Poseidon ve Fırat villaları ile Okeanos ve Tethys mozaiği öne çıkan eserler.'],
+ visit:'1,5–2 saat ayırın. Çingene Kızı ayrı, karanlık bir odada; sona saklamayın. Müzenin kendi otoparkı var.'},
+{id:'akale',n:'Gaziantep Kalesi',lat:37.06646,lon:37.38321,c:'hist',r:200,sub:'Kale · Panorama Müzesi',img:'Gaziantep_castle.JPG',
+ facts:['Kökeni Roma dönemine uzanır; sonraki dönemlerde genişletildi.','İçinde Gaziantep Savunması\'nı anlatan Savunma ve Kahramanlık Panorama Müzesi bulunur.','6 Şubat 2023 depremlerinde hasar gördü; restorasyon sonrası Eylül 2025\'te yeniden ziyarete açıldığı bildirildi.'],
+ visit:'Zincirli Bedesten, Bakırcılar Çarşısı ve Tahmis Kahvesi 5 dakikalık yürüme mesafesinde; arabayı bir kez bırakıp hepsini yürüyün.'},
+{id:'zincirli',n:'Zincirli Bedesten',lat:37.06297,lon:37.38547,c:'hist',r:150,sub:'Kapalı çarşı · Osmanlı',img:'Zincirli_Bedesten_Gaziantep_TÜRKİYE_-_panoramio.jpg',
+ facts:['Darendeli Hüseyin Paşa tarafından yaptırıldı; kaynaklarda yapım yılı 1718 ya da 1781 olarak geçer.','73 dükkânlı kapalı çarşı.','Yanındaki Bakırcılar Çarşısı ile birlikte gezilir.'],
+ visit:'Baharat, kurutmalık ve yemeni alışverişi için iyi yer.'},
+{id:'bakir',n:'Bakırcılar Çarşısı',lat:37.06225,lon:37.38642,c:'hist',r:150,sub:'Tarihî çarşı · bakır ustaları',
+ facts:['Bakır ustalarının dövme ve kakma işlerini yerinde izleyebileceğiniz tarihî çarşı.','Zincirli Bedesten\'in hemen yanında.'],
+ visit:'Fiyat sormadan almayın; el işi ile hazır ürün arasındaki farkı ustaya sorun.'},
+{id:'tahmis',n:'Tahmis Kahvesi',lat:37.06122,lon:37.38772,c:'cafe',r:120,sub:'Tarihî kahvehane · 1635',
+ facts:['1635\'te Mustafa Ağa bin Yusuf tarafından yaptırıldı.','Menengiç kahvesiyle bilinir.'],
+ visit:'Çarşı gezisinin molası: menengiç kahvesi deneyin.'},
+{id:'kurtulus',n:'Kurtuluş Camii',lat:37.06023,lon:37.37562,c:'hist',r:150,sub:'Eski kilise · 1892–93',img:'Gaziantep_Kurtuluş_Cami_in_2004_8518.jpg',
+ facts:['1892–93\'te Surp Asdvadzadzin Ermeni Kilisesi olarak yapıldı; mimarı Sarkis Balyan olarak bilinir.','Bir dönem cezaevi olarak kullanıldı; 1986\'da cami olarak ibadete açıldı.','Siyah-beyaz taş örgüsü uzaktan tanınır. 2023 depremlerinde hasar gördü; ziyaret durumunu kontrol edin.'],
+ visit:'Kaleden yürüyerek 10 dakika.'},
+{id:'zeugmaa',n:'Zeugma Antik Kenti',lat:37.05739,lon:37.8706,c:'hist',r:600,sub:'Ören yeri · Belkıs, Nizip',
+ facts:['MÖ 300 civarında I. Seleukos tarafından Seleukeia Euphrates adıyla kuruldu.','Karşı kıyıdaki Apamea\'ya köprüyle bağlıydı; Zeugma "köprü, geçit" demektir.','Kentin büyük bölümü 2000\'de Birecik Barajı\'nın suları altında kaldı.','Bugüne kadar kentin yüzde 10\'undan azı kazıldı; UNESCO Dünya Mirası Geçici Listesi\'nde.'],
+ visit:'Nizip\'e yaklaşık 10 km. Halfeti yolunda kısa bir sapmayla eklenebilir.'},
+{id:'rumkale',n:'Rumkale',lat:37.2724,lon:37.83797,c:'hist',r:800,sub:'Fırat kıyısında kale',img:'Rumkale_Fortress,_Halfeti.jpg',
+ facts:['Fırat ile Merzimen Çayı\'nın birleştiği yerde, Gaziantep sınırları içinde.','Halfeti tekne turlarından en iyi görünen yapı.'],
+ visit:'Genellikle tekneden izlenir; çıkmak isterseniz güncel ziyaret durumunu sorun.'},
+{id:'yesemek',n:'Yesemek Taş Ocağı ve Heykel Atölyesi',lat:36.90481,lon:36.74258,c:'hist',r:900,sub:'Hitit heykel atölyesi · İslahiye',img:'YesemekStreitwagen.jpg',
+ facts:['İslahiye ilçe merkezine 23 km.','Hitit ve Geç Hitit dönemine ait taş ocağı ve heykel atölyesi; 518 heykel ve parça var.','2012\'den beri UNESCO Dünya Mirası Geçici Listesi\'nde.'],
+ visit:'Açık hava müzesi; 08:00–17:00. Güneşli günde şapka ve su alın.'},
+{id:'duluk',n:'Dülük Antik Kenti',lat:37.12778,lon:37.34541,c:'hist',r:500,sub:'Doliche · Jupiter Dolichenus',
+ facts:['Şehir merkezinin yaklaşık 10 km kuzeyinde.','Fırtına tanrısı Teşup\'un, Roma döneminde Jupiter Dolichenus\'un kült merkeziydi.'],
+ visit:'Ormanlık alanda; kısa yürüyüşle görülür.'}
+];
 /* ---------- Urfa rehberi (doğrulanmış içerik) ---------- */
 const G=[
 {id:'gobekli',n:'Göbeklitepe',lat:37.2233,lon:38.9224,c:'hist',sub:'Arkeolojik alan · UNESCO',img:'Archäologiepark_Göbekli_Tepe.jpg',by:'Philrock',
@@ -518,7 +588,7 @@ const G=[
  facts:['2000\'de tamamlanan Birecik Barajı ile büyük bölümü sular altında kaldı.','Tekne turlarıyla Rumkale ve batık cami minaresi görülür.','2013\'te Cittaslow unvanı aldı.'],visit:'Gaziantep dönüşünde Birecik\'ten sapmayla eklenebilir.'},
 {id:'karahan',n:'Karahantepe',q:'Karahantepe, Haliliye, Şanlıurfa',c:'hist',sub:'Arkeolojik alan · Taş Tepeler',
  facts:['Şehir merkezine 46 km, Tek Tek Dağları Milli Parkı içinde.','Kazılar 2019\'da başladı; T biçimli dikilitaşlar ve heykeller bulundu.','Ziyaretçi merkezinin 2026 içinde devreye girmesi planlanıyor.'],visit:'Gitmeden ziyaret durumunu kontrol edin.'}
-].map(p=>({...p,cur:true,tags:{}}));
+].map(p=>({city:'urfa',...p,cur:true,tags:{}})).concat(GA_LIST.map(p=>({city:'antep',...p,cur:true,tags:{}})));
 let geoCache=store.get('geoCache',{});
 async function fillCoords(){
   for(const p of G){
@@ -531,10 +601,11 @@ async function fillCoords(){
   renderGuide();if(typeof renderToday==='function')renderToday();
 }
 function renderGuide(){
-  const ref=me||[37.1477,38.7844];
+  const C=CITY[city],ref=me||C.c;
   G.forEach(p=>{p.d=p.lat!=null?hav(ref,[p.lat,p.lon]):Infinity});
-  const arr=[...G].sort((a,b)=>a.d-b.d);
-  $('#guideStatus').textContent='Doğrulanmış bilgiler ve fotoğraflar. Mesafeler '+(me?'konumunuzdan':'Balıklıgöl\'den (Konumum\'a basarsanız sizden)')+' kuş uçuşu.';
+  const arr=G.filter(p=>p.city===city).sort((a,b)=>a.d-b.d);
+  $('#cityHero').innerHTML='<img src="'+img(C.img,240)+'" alt="" onerror="this.remove()"><div><b>'+esc(C.n)+' rehberi</b><span>'+arr.length+' yer · '+esc(C.d)+'</span></div>';
+  $('#guideStatus').textContent='Doğrulanmış bilgiler ve fotoğraflar. Mesafeler '+(me?'konumunuzdan':C.ref+'\'den (Konumum\'a basarsanız sizden)')+' kuş uçuşu.';
   $('#guideList').innerHTML=arr.map(p=>'<button class="it" data-id="'+p.id+'" data-list="guide" aria-expanded="'+(open==='guide'+p.id)+'"><span class="d" style="background:'+CAT[p.c].c+'"></span><span><b>'+esc(p.n)+'</b><small>'+esc(p.sub)+'</small></span><span class="km">'+(p.d===Infinity?'…':fKm(p.d))+'</span></button>'+(open==='guide'+p.id?'<div class="det" id="det"></div>':'')).join('');
   if(open&&open.startsWith('guide')){const p=G.find(x=>'guide'+x.id===open);if(p&&p.lat!=null)detail(p,'guide')}
 }
@@ -649,6 +720,14 @@ halfeti:['Halfeti\'de müze bileti yok; Müzekart burada kullanılmaz','Tekne tu
 eyup:['Hz. Eyüp Makamı ücretsiz ziyaretgâh'],
 halil:['Ücretsiz; namaz vakitlerine dikkat'],rizvaniye:['Ücretsiz; namaz vakitlerine dikkat'],mevlid:['Ücretsiz; kıyafet kuralı var'],gumruk:['Giriş serbest'],
 karahan:['Bakanlığa bağlı ören yeri; ziyaret durumunu ve bileti gitmeden kontrol edin']};
+Object.assign(GAL,{zeugmam:['The_Gypsy_Girl_Mosaic_of_Zeugma_with_bg.jpg','Gaziantep_Zeugma_Mozaik_Müzesi_TÜRKİYE_-_panoramio_(3).jpg','ZeugmaMuseum19.jpg','Zeugma_Mural-kiwanc.jpg'],
+akale:['Gaziantep_castle.JPG','Gaziantep.jpg','View_from_Gaziantep_Castle.jpg'],
+zincirli:['Zincirli_Bedesten_Gaziantep_TÜRKİYE_-_panoramio.jpg'],
+kurtulus:['Gaziantep_Kurtuluş_Cami_in_2004_8518.jpg','Gaziantep_Kurtuluş_Cami_4547.jpg','Gaziantep_Kurtuluş_Cami_4549.jpg'],
+rumkale:['Rumkale_Fortress,_Halfeti.jpg','Rumkale_25_05_2010_Savaşan.jpg'],yesemek:['YesemekStreitwagen.jpg']});
+Object.assign(MK,{zeugmam:['Kültür ve Turizm Bakanlığı müzesi; Müzekart geçerli','Saatler: 08:30–17:00, gişe 16:30\'da kapanır (muze.gov.tr\'den teyit edin)'],
+akale:['Panorama Müzesi giriş ve saatlerini gitmeden kontrol edin'],zincirli:['Giriş serbest'],bakir:['Giriş serbest'],tahmis:['Kahvehane; giriş serbest'],kurtulus:['Ücretsiz; namaz vakitlerine dikkat'],
+zeugmaa:['Bakanlığa bağlı ören yeri; Müzekart geçerliliğini gişede teyit edin'],yesemek:['Bakanlığa bağlı açık hava müzesi; 08:00–17:00','Müzekart geçerliliğini gişede teyit edin'],rumkale:['Tekne turu ücretli; fiyatı binmeden sorun'],duluk:['Ziyaret durumunu gitmeden kontrol edin']});
 const gkey=id=>String(id).replace(/^g_/,'');
 function gallery(key,fallback){const L=GAL[key]||(fallback?[fallback]:[]);if(!L.length)return'';return '<div class="gal">'+L.map((f,i)=>'<figure><img src="https://commons.wikimedia.org/wiki/Special:FilePath/'+encodeURIComponent(f)+'?width='+(i?700:900)+'" alt="" loading="lazy" onerror="this.parentNode.remove()"><a class="cr" target="_blank" rel="noopener" href="https://commons.wikimedia.org/wiki/File:'+encodeURIComponent(f)+'">Wikimedia Commons</a></figure>').join('')+'</div>'+(L.length>1?'<div class="note" style="margin:0 0 6px">Sağa kaydırarak '+L.length+' fotoğrafı görün</div>':'')}
 function mkBox(key){const m=MK[key];return m?'<div class="tip" style="margin:10px 0"><b>Müzekart ve giriş</b><ul style="margin:4px 0 0;padding-left:18px">'+m.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>':''}
@@ -699,8 +778,8 @@ function speak(id){
   const s=stopPool().find(x=>x.id===id);if(!s)return;
   const txt=s.n+'. '+s.sec.map(([h,p])=>h+'. '+p).join(' ');
   const parts=txt.match(/[^.!?]+[.!?]*/g)||[txt];
-  const v=speechSynthesis.getVoices().find(x=>/^tr/i.test(x.lang));
-  parts.forEach((p,i)=>{const u=new SpeechSynthesisUtterance(p.trim());u.lang='tr-TR';if(v)u.voice=v;u.rate=.95;if(i===parts.length-1)u.onend=()=>{if(speaking===id){speaking=null;renderToday()}};speechSynthesis.speak(u)});
+  const v=agVoice();
+  parts.forEach((p,i)=>{const u=new SpeechSynthesisUtterance(p.trim());u.lang='tr-TR';if(v)u.voice=v;u.rate=AG.rate;if(i===parts.length-1)u.onend=()=>{if(speaking===id){speaking=null;renderToday()}};speechSynthesis.speak(u)});
   speaking=id;renderToday();
 }
 $('#tStart').value=store.get('tStart','09:00');
@@ -718,6 +797,109 @@ $('#todayRoute').onclick=()=>{const by=Object.fromEntries(stopPool().map(p=>[p.i
 $('#todaySuggest').onclick=()=>{plan=['halfeti','gobekli','gol'];tDone=true;tOpen=null;saveT();renderToday()};
 $('#todayReset').onclick=()=>{plan=[];tDone=false;tOpen=null;saveT();renderToday()};
 renderToday();
+
+/* ---------- i18n altyapısı ---------- */
+const I18N={
+ tr:{app:'Gezi Rotam',tagline:'Tarihî yerler rehberi',ag:'🎧 Sesli',loc:'📍',t_today:'Bugün',t_near:'Yakınımda',t_route:'Rota',t_guide:'Rehber',t_info:'Bilgi',
+  ag_title:'Yaklaşınca sesli anlatım',ag_help:'Üstteki 🎧 Sesli düğmesine bir kez basın. Telefon konumunuzu izler; bu listedeki bir yere yaklaştığınızda anlatım kendiliğinden başlar. Ekran açık kalır; telefonu cebe koymadan önce sesi açın.',
+  ag_pause:'Durdur',ag_resume:'Devam',ag_skip:'Atla',ag_off:'Kapat',ag_on:'Sesli rehber açık',ag_wait:'Konum bekleniyor…',ag_next:'En yakın',ag_listen:'Dinleniyor',lang:'Dil / Language',lang_note:'İçerik şimdilik Türkçe; İngilizce arayüz hazırlanıyor.',ag_when:'Ne zaman anlatsın?',m_auto:'Yaklaşınca',m_arrive:'Mekâna varınca',m_ask:'Önce sor',m_off:'Kendiliğinden başlamasın',ag_test:'Sesi dene',ag_rate:'Konuşma hızı',ag_askq:'Tanıtımı dinlemek ister misiniz?',ag_near:'Yakınınızda'},
+ en:{app:'Gezi Rotam',tagline:'Historic sites guide',ag:'🎧 Audio',loc:'📍',t_today:'Today',t_near:'Nearby',t_route:'Route',t_guide:'Guide',t_info:'Info',
+  ag_title:'Narration as you approach',ag_help:'Tap 🎧 Audio guide once. Your phone tracks your location and narration starts by itself when you get close to a place in this list. The screen stays on; turn the volume up first.',
+  ag_pause:'Pause',ag_resume:'Resume',ag_skip:'Skip',ag_off:'Close',ag_on:'Audio guide on',ag_wait:'Waiting for location…',ag_next:'Nearest',ag_listen:'Playing',lang:'Dil / Language',lang_note:'Content is Turkish for now; the English version is in preparation.',ag_when:'When should it narrate?',m_auto:'On approach',m_arrive:'On arrival',m_ask:'Ask first',m_off:'Manual only',ag_test:'Test voice',ag_rate:'Speech rate',ag_askq:'Play the introduction?',ag_near:'Nearby'}};
+let lang=store.get('lang','tr');if(!I18N[lang])lang='tr';
+const t=k=>(I18N[lang]&&I18N[lang][k])||I18N.tr[k]||k;
+const tx=v=>v&&typeof v==='object'&&!Array.isArray(v)?(v[lang]||v.tr||''):v;   // içerik alanı: 'metin' ya da {tr:'',en:''}
+function applyI18n(){document.documentElement.lang=lang;document.querySelectorAll('[data-i18n]').forEach(e=>{e.textContent=t(e.dataset.i18n)});document.querySelectorAll('#langSeg [data-lang]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.lang===lang));agUI()}
+$('#langSeg').onclick=e=>{const b=e.target.closest('[data-lang]');if(!b)return;lang=b.dataset.lang;store.set('lang',lang);applyI18n()};
+
+/* ---------- şehir seçici ---------- */
+$('#citySel').innerHTML=Object.entries(CITY).map(([k,c])=>'<option value="'+k+'">'+esc(c.n)+'</option>').join('');
+$('#citySel').value=city;
+function setCity(k,show){city=k;store.set('city',k);$('#citySel').value=k;renderGuide();if(show){go('rehber');const ps=G.filter(p=>p.city===k&&p.lat!=null).map(p=>[p.lat,p.lon]);if(ps.length)map.fitBounds(ps,{padding:[30,30],maxZoom:13})}}
+$('#citySel').onchange=()=>setCity($('#citySel').value,true);
+
+/* ---------- YAKLAŞINCA SESLİ ANLATIM ---------- */
+const AG={on:false,watch:null,wl:null,q:[],cur:null,paused:false,tok:0,heard:store.get('agHeard',{}),pos:null,ask:null,asked:{},
+ mode:store.get('agMode','auto'),voice:store.get('agVoice',''),rate:store.get('agRate',0.95)};
+const agR0=p=>p.r||(p.c==='museum'?250:350);
+const agR=p=>AG.mode==='arrive'?Math.max(60,Math.round(agR0(p)/3)):agR0(p);
+function agVoices(){if(!('speechSynthesis' in window))return[];const sc=v=>(/natural|neural|online/i.test(v.name)?6:0)+(/premium|enhanced|gelişmiş|yüksek/i.test(v.name)?5:0)+(/google/i.test(v.name)?3:0)+(v.localService?0:1);
+  return speechSynthesis.getVoices().filter(v=>/^tr/i.test(v.lang)).sort((a,b)=>sc(b)-sc(a))}
+function agFillVoices(){const L2=agVoices(),sel=$('#agVoiceSel');if(!sel)return;
+  sel.innerHTML=L2.length?L2.map((v,i)=>'<option value="'+esc(v.name)+'">'+esc(v.name.replace(/\s*\(.*?Turkish.*?\)/i,''))+(i===0?' (önerilen)':'')+'</option>').join(''):'<option value="">Türkçe ses bulunamadı</option>';
+  if(AG.voice&&L2.some(v=>v.name===AG.voice))sel.value=AG.voice;
+  const good=L2.some(v=>/natural|neural|online|premium|enhanced|gelişmiş|google/i.test(v.name));
+  $('#agVoiceNote').textContent=good?'Listenin başındaki ses cihazınızdaki en doğal Türkçe sestir.':'Bu cihazda yalnızca basit (robotik) Türkçe ses var. Daha doğal ses için: iPhone\'da Ayarlar › Erişilebilirlik › Seslendirilen İçerik › Sesler › Türkçe bölümünden Yelda\'nın Gelişmiş/Premium sürümünü indirin. Android\'de Google Konuşma Hizmetleri\'nde Türkçe yüksek kaliteli sesi indirin. Bilgisayarda Microsoft Edge\'deki "Emel (Natural)" sesi en doğal olanıdır.';
+}
+if('speechSynthesis' in window){agFillVoices();speechSynthesis.addEventListener&&speechSynthesis.addEventListener('voiceschanged',agFillVoices)}
+$('#agVoiceSel').onchange=()=>{AG.voice=$('#agVoiceSel').value;store.set('agVoice',AG.voice);agSay('Merhaba, ben sesli rehberiniz. Göbeklitepe\'ye hoş geldiniz.')};
+$('#agRate').value=AG.rate;$('#agRate').onchange=()=>{AG.rate=+$('#agRate').value;store.set('agRate',AG.rate);agSay('Bu hızda anlatacağım.')};
+$('#agTest').onclick=()=>agSay('Merhaba, ben sesli rehberiniz. Göbeklitepe yaklaşık on iki bin yıl önce inşa edildi.');
+function agModeUI(){document.querySelectorAll('#agMode [data-m]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===AG.mode))}
+$('#agMode').onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;AG.mode=b.dataset.m;store.set('agMode',AG.mode);agModeUI();if(AG.pos)agCheck(AG.pos);agUI()};
+agModeUI();
+function agText(p){
+  const s=(typeof stopPool==='function'?stopPool():[]).find(x=>gkey(x.id)===p.id&&x.sec);
+  if(s)return s.n+'. '+s.sec.map(([h,b])=>h+'. '+b).join(' ');
+  return tx(p.n)+'. '+(p.story?tx(p.story)+' ':'')+(p.facts||[]).map(tx).join(' ')+(p.visit?' Ziyaret notu: '+tx(p.visit):'');
+}
+function agVoice(){const L2=agVoices();return L2.find(v=>v.name===AG.voice)||L2[0]}
+function agSay(text,done){
+  const my=++AG.tok;speechSynthesis.cancel();
+  const parts=text.match(/[^.!?]+[.!?]*/g)||[text];const v=agVoice();
+  parts.forEach((x,i)=>{const u=new SpeechSynthesisUtterance(x.trim());u.lang='tr-TR';if(v)u.voice=v;u.rate=AG.rate;
+    if(i===parts.length-1)u.onend=()=>{if(my===AG.tok&&done)done()};speechSynthesis.speak(u)});
+}
+function agNext(){
+  AG.cur=null;
+  while(AG.q.length){const p=AG.q.shift();if(p){AG.cur=p;AG.heard[p.id]=Date.now();store.set('agHeard',AG.heard);agSay(agText(p),()=>{agNext()});break}}
+  agUI();
+}
+function agPlay(id){const p=G.find(x=>x.id===id);if(!p)return;if(!('speechSynthesis' in window)){alert('Bu tarayıcı sesli anlatımı desteklemiyor.');return}
+  if(!AG.on)$('#agBar').classList.add('on');AG.q=AG.q.filter(x=>x.id!==id);AG.q.unshift(p);AG.paused=false;agNext()}
+function agCheck(pos){
+  AG.pos=pos;const now=Date.now();
+  G.forEach(p=>{if(p.lat==null)return;const d=hav(pos,[p.lat,p.lon]);
+    if(d>agR(p)||(AG.heard[p.id]&&now-AG.heard[p.id]<6*3600e3)||AG.cur===p||AG.q.includes(p))return;
+    if(AG.mode==='auto'||AG.mode==='arrive'){AG.q.push(p);if(navigator.vibrate)navigator.vibrate(200)}
+    else if(AG.mode==='ask'&&!AG.ask&&!(AG.asked[p.id]&&now-AG.asked[p.id]<3600e3)){AG.ask=p;AG.asked[p.id]=now;if(navigator.vibrate)navigator.vibrate([150,80,150])}});
+  if(!AG.cur&&!AG.paused&&AG.q.length)agNext();else agUI();
+}
+function agUI(){
+  const bar=$('#agBar');if(!bar)return;
+  $('#agBtn').classList.toggle('on',AG.on);
+  bar.classList.toggle('play',!!AG.cur&&!AG.paused);
+  $('#agPause').textContent=AG.paused?t('ag_resume'):t('ag_pause');
+  $('#agAsk').hidden=!AG.ask;$('#agCtl').hidden=!!AG.ask;
+  if(AG.ask){$('#agNow').textContent=t('ag_near')+': '+tx(AG.ask.n);$('#agNext').textContent=t('ag_askq');return}
+  $('#agNow').textContent=AG.cur?t('ag_listen')+': '+tx(AG.cur.n):t('ag_on')+' · '+t('m_'+AG.mode);
+  let nx=t('ag_wait');
+  if(AG.pos){const c=G.filter(p=>p.lat!=null&&!(AG.heard[p.id]&&Date.now()-AG.heard[p.id]<6*3600e3)).map(p=>[p,hav(AG.pos,[p.lat,p.lon])]).sort((a,b)=>a[1]-b[1])[0];
+    nx=(AG.q.length?'Sırada: '+AG.q.map(p=>tx(p.n)).join(', ')+' · ':'')+(c?t('ag_next')+': '+tx(c[0].n)+' · '+fKm(c[1])+' (anlatım '+fKm(agR(c[0]))+' kala başlar)':'')}
+  $('#agNext').textContent=nx;
+}
+async function agWake(){try{if('wakeLock' in navigator&&AG.on&&document.visibilityState==='visible')AG.wl=await navigator.wakeLock.request('screen')}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')agWake()});
+function agStart(){
+  if(!('speechSynthesis' in window)){alert('Bu tarayıcı sesli anlatımı desteklemiyor.');return}
+  if(!navigator.geolocation){alert('Bu tarayıcı konum vermiyor.');return}
+  AG.on=true;AG.paused=false;$('#agBar').classList.add('on');
+  agSay('Sesli rehber açıldı. Listedeki bir yere yaklaştığınızda anlatım kendiliğinden başlayacak.');   // dokunuşla sesi başlatır (iOS için gerekli)
+  agWake();
+  AG.watch=navigator.geolocation.watchPosition(p=>{setMe(p.coords.latitude,p.coords.longitude);agCheck(me)},
+    ()=>{$('#agNext').textContent='Konum alınamıyor. Konum iznini açın.'},{enableHighAccuracy:true,maximumAge:5000,timeout:30000});
+  agUI();
+}
+function agStop(){AG.on=false;AG.ask=null;AG.tok++;speechSynthesis.cancel();AG.q=[];AG.cur=null;AG.paused=false;if(AG.watch!=null)navigator.geolocation.clearWatch(AG.watch);AG.watch=null;try{AG.wl&&AG.wl.release()}catch(e){}AG.wl=null;$('#agBar').classList.remove('on');agUI()}
+$('#agBtn').onclick=()=>{AG.on?agStop():agStart()};
+$('#agOff').onclick=agStop;
+$('#agYes').onclick=()=>{const p=AG.ask;AG.ask=null;if(p)agPlay(p.id)};
+$('#agNo').onclick=()=>{AG.ask=null;agUI()};
+$('#agSkip').onclick=()=>{AG.tok++;speechSynthesis.cancel();AG.paused=false;agNext()};
+$('#agPause').onclick=()=>{if(!AG.cur)return;if(AG.paused){speechSynthesis.resume();AG.paused=false}else{speechSynthesis.pause();AG.paused=true}agUI()};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-agplay]');if(b)agPlay(b.dataset.agplay)});
+window.gezi={agCheck,agPlay,AG,setCity};   // test için
+applyI18n();
 
 /* ---------- başlat ---------- */
 chips();
