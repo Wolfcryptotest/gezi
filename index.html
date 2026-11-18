@@ -105,6 +105,19 @@ header select option{color:#1f2a29}
 .cityhero b{display:block;font-size:17px}.cityhero span{font-size:13px;color:var(--mute)}
 .seg{display:flex;gap:6px;margin:6px 0}
 .seg{flex-wrap:wrap}.seg button{flex:1 1 40%;font-size:13px;padding:0 6px}
+.tabs{overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}.tab{flex:1 0 auto;padding:0 12px}
+.hero{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:8px 0}
+.hero .gal{margin:0}.hero .gal figure{flex-basis:92%}.hero .gal img{height:240px;border-radius:0}
+.hero .in{padding:12px}
+.hero h2{margin:0;font-size:22px;line-height:1.2}
+.hero .meta{color:var(--mute);font-size:13.5px;margin:4px 0 8px}
+.hero p{margin:0 0 8px}
+.hero h4{margin:12px 0 4px;font-size:16px}
+.sec2{font-size:16px;margin:16px 0 6px}
+.pgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.pgrid a{display:block;aspect-ratio:1;overflow:hidden;border-radius:8px;background:var(--soft)}
+.pgrid img{width:100%;height:100%;object-fit:cover;display:block}
+.badge{display:inline-block;font-size:11.5px;border-radius:999px;padding:1px 8px;background:var(--soft);color:var(--mute);margin-left:6px;vertical-align:middle}
 .seg button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 </style>
 </head>
@@ -122,11 +135,22 @@ header select option{color:#1f2a29}
   <div id="tripbar"></div>
   <div class="tabs" role="tablist">
     <button class="tab" data-v="bugun" aria-selected="true" data-i18n="t_today">Bugün</button>
+    <button class="tab" data-v="burada" aria-selected="false" data-i18n="t_here">Burada</button>
     <button class="tab" data-v="yakin" aria-selected="false" data-i18n="t_near">Yakınımda</button>
     <button class="tab" data-v="rota" aria-selected="false" data-i18n="t_route">Rota</button>
     <button class="tab" data-v="rehber" aria-selected="false" data-i18n="t_guide">Rehber</button>
     <button class="tab" data-v="bilgi" aria-selected="false" data-i18n="t_info">Bilgi</button>
   </div>
+
+  <!-- BURADA: tur rehberi -->
+  <section class="view" id="v-burada">
+    <form class="row2" id="hereForm"><input id="hereQ" placeholder="Türkiye'de bir yer yazın: Efes, Ani, Sümela…"><button class="btn">Göster</button></form>
+    <button class="btn red" id="hereLoc" type="button" style="width:100%">📍 Bulunduğum yeri tanıt</button>
+    <div class="status" id="hereStatus">Konumunuzdaki tarihî yeri fotoğraf, tanıtım, video ve sesli anlatımla tanıtır. Türkiye'nin her yerinde çalışır.</div>
+    <div id="hereCard"></div>
+    <h3 class="sec2" id="hereListH" hidden>Etraftaki tarihî yerler</h3><div class="list" id="hereList"></div>
+    <h3 class="sec2" id="herePhH" hidden>Bu çevreden fotoğraflar</h3><div class="pgrid" id="herePhotos"></div>
+  </section>
 
   <!-- YAKINIMDA -->
   <section class="view on" id="v-bugun">
@@ -183,6 +207,7 @@ header select option{color:#1f2a29}
       <div class="row2"><select id="agVoiceSel" aria-label="Ses" style="flex:1"></select><button class="btn sm alt" id="agTest" type="button" data-i18n="ag_test">Sesi dene</button></div>
       <div class="row2"><label class="note" for="agRate" data-i18n="ag_rate">Konuşma hızı</label><input type="range" id="agRate" min="0.7" max="1.3" step="0.05" style="flex:1;min-height:30px;padding:0"></div>
       <span class="note" id="agVoiceNote"></span></div>
+    <div class="row2"><button class="btn alt sm" id="offBtn" type="button">⬇ Bu şehri çevrimdışı kullanım için indir</button><span class="note" id="offSt"></span></div>
     <div class="status" id="guideStatus">Doğrulanmış bilgiler ve fotoğraflar. Mesafeler konumunuzdan (konum yoksa Balıklıgöl'den).</div>
     <div class="list" id="guideList"></div>
   </section>
@@ -299,9 +324,9 @@ function renderList(list){
 }
 function drawPois(){
   poiLayer.clearLayers();
-  const vis=$('#v-rota').classList.contains('on')?along:near;
+  const hv=$('#v-burada').classList.contains('on');const vis=$('#v-rota').classList.contains('on')?along:(hv?here.items:near);
   vis.filter(p=>filt[p.c]).slice(0,300).forEach(p=>{
-    L.circleMarker([p.lat,p.lon],{radius:6,color:'#fff',weight:1.5,fillColor:CAT[p.c].c,fillOpacity:.95}).bindTooltip(p.n).on('click',()=>{const l=vis===along?'along':'near';open=l+p.id;renderList(l);document.querySelector('[data-id="'+p.id+'"][data-list="'+l+'"]')?.scrollIntoView({block:'center',behavior:'smooth'})}).addTo(poiLayer);
+    L.circleMarker([p.lat,p.lon],{radius:6,color:'#fff',weight:1.5,fillColor:CAT[p.c].c,fillOpacity:.95}).bindTooltip(p.n).on('click',()=>{if(hv){hereShow(p);$('#hereCard').scrollIntoView({behavior:'smooth'});return}const l=vis===along?'along':'near';open=l+p.id;renderList(l);document.querySelector('[data-id="'+p.id+'"][data-list="'+l+'"]')?.scrollIntoView({block:'center',behavior:'smooth'})}).addTo(poiLayer);
   });
 }
 
@@ -798,12 +823,117 @@ $('#todaySuggest').onclick=()=>{plan=['halfeti','gobekli','gol'];tDone=true;tOpe
 $('#todayReset').onclick=()=>{plan=[];tDone=false;tOpen=null;saveT();renderToday()};
 renderToday();
 
+/* ---------- BURADA: konumdaki yeri tur rehberi gibi tanıt ---------- */
+const WL=()=>lang==='en'?'en':'tr';
+const NONHIST=/mahallesi|neighbourhood|ilkokulu|ortaokulu|lisesi|hastanesi|caddesi|bulvarı|sokağı|istasyonu|stadyumu|avm|alışveriş merkezi|belediyesi|üniversitesi|fakültesi|seçim bölgesi|otel|kavşağı|köprülü kavşak|spor kulübü|futbol|merkez,/i;
+const HISTKW=/cami|mescit|kilise|katedral|manastır|sinagog|han|hamam|kale|sur|türbe|kümbet|medrese|külliye|müze|köprü|çarşı|bedesten|antik|ören|höyük|tepe|kervansaray|saray|konak|mağara|kapı|anıt|göl|tiyatro|zaviye|tekke|çeşme|makam|harabe|kent|tapınak|nekropol|kaya|arkeoloji|mosque|church|castle|museum|bridge|ancient|temple/i;
+const wcache={};
+async function wikiGeo(c,r,lim){
+  const l=WL();
+  const j=await fetchJ('https://'+l+'.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord='+c[0]+'%7C'+c[1]+'&gsradius='+Math.min(Math.max(r,100),10000)+'&gslimit='+(lim||80)+'&format=json&origin=*',{},1,15000);
+  const names=new Set(G.map(p=>norm(p.n)));
+  return (j.query&&j.query.geosearch||[]).filter(g=>!NONHIST.test(g.title)&&!names.has(norm(g.title)))
+    .map(g=>({id:'w'+g.pageid,n:g.title,lat:g.lat,lon:g.lon,c:HISTKW.test(g.title)?'hist':'view',sub:'Vikipedi',w:g.title,wl:l,hk:HISTKW.test(g.title),tags:{wikipedia:l+':'+g.title},d:g.dist}));
+}
+async function wikiInfo(l,title){
+  const k=l+':'+title;if(wcache[k])return wcache[k];
+  const base='https://'+l+'.wikipedia.org/w/api.php?format=json&origin=*&redirects=1&titles='+encodeURIComponent(title);
+  const [a,b]=await Promise.all([
+    fetchJ(base+'&action=query&prop=extracts|pageimages|info&inprop=url&explaintext=1&exsectionformat=plain&exchars=4000&piprop=original',{},1,15000),
+    fetchJ(base+'&action=query&generator=images&gimlimit=40&prop=imageinfo&iiprop=url|user&iiurlwidth=900',{},1,15000).catch(()=>({}))]);
+  const pg=Object.values(a.query&&a.query.pages||{})[0]||{};
+  const imgs=Object.values(b.query&&b.query.pages||{}).filter(x=>x.imageinfo&&/\.(jpe?g|png|webp)$/i.test(x.title)&&!/logo|icon|flag|bayrak|locator|location|konum|harita|map|symbol|coat|arma|seal|signature|imza|portal|question|edit/i.test(x.title))
+    .map(x=>({u:x.imageinfo[0].thumburl||x.imageinfo[0].url,p:x.imageinfo[0].descriptionurl,by:x.imageinfo[0].user}));
+  if(pg.original&&!imgs.some(i=>i.u.split('/').pop()===pg.original.source.split('/').pop()))imgs.unshift({u:pg.original.source,p:pg.fullurl,by:'Vikipedi'});
+  return wcache[k]={extract:(pg.extract||'').replace(/\n{2,}/g,'\n').trim(),url:pg.fullurl||('https://'+l+'.wikipedia.org/wiki/'+encodeURIComponent(title)),imgs};
+}
+const wikiSpeech=x=>{x=(x||'').replace(/\([^)]*\)/g,'').replace(/\s+/g,' ').trim();if(x.length<=1400)return x;const c=x.slice(0,1400);return c.slice(0,c.lastIndexOf('.')+1)||c};
+function galUrls(L2){return L2.length?'<div class="gal">'+L2.slice(0,12).map(i=>'<figure><img src="'+esc(i.u)+'" alt="" loading="lazy" onerror="this.parentNode.remove()"><a class="cr" target="_blank" rel="noopener" href="'+esc(i.p||'#')+'">© '+esc(i.by||'Wikimedia Commons')+'</a></figure>').join('')+'</div>':''}
+const ytLink=n=>'<a class="btn sm alt" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query='+encodeURIComponent(n+' tanıtım belgesel')+'">▶ YouTube\'da videolar</a>';
+const here={c:null,items:[],sel:null};
+function findPlace(id){return G.find(x=>x.id===id)||AG.wiki.find(x=>x.id===id)||here.items.find(x=>x.id===id)}
+function hereBtns(p){const g='https://www.google.com/maps/dir/?api=1&destination='+p.lat+','+p.lon;
+  return '<div class="btns"><button class="btn sm red" data-agplay="'+esc(p.id)+'">🎧 Sesli anlatım</button><a class="btn sm" target="_blank" rel="noopener" href="'+g+'">Yol tarifi</a><button class="btn sm alt" data-herezoom="'+esc(p.id)+'">Haritada</button>'+ytLink(p.n)+'</div>'}
+async function hereShow(p){
+  here.sel=p;const el=$('#hereCard');const dist=here.c?hav(here.c,[p.lat,p.lon]):null;
+  const meta=esc(p.sub||'')+(dist!=null?' · '+fKm(dist)+(dist<150?' · buradasınız':''):'');
+  if(p.cur){
+    const s=stopPool().find(x=>gkey(x.id)===p.id&&x.sec);
+    el.innerHTML='<div class="hero">'+gallery(gkey(p.id),p.img)+'<div class="in"><h2>'+esc(p.n)+'</h2><div class="meta">'+meta+'</div>'+hereBtns(p)+
+      (s?s.sec.map(([h,b])=>'<h4>'+esc(h)+'</h4><p>'+esc(b)+'</p>').join('')+'<h4>Gezerken sırasıyla</h4><ol style="margin:0;padding-left:20px">'+s.see.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ol><div class="tip" style="margin:10px 0 0"><b>Not</b>'+esc(s.tip)+'</div>'
+        :'<h4>Tanıtım</h4><ul style="margin:0;padding-left:18px">'+(p.facts||[]).map(f=>'<li>'+esc(tx(f))+'</li>').join('')+'</ul>'+(p.visit?'<div class="tip" style="margin:10px 0 0"><b>Ziyaret</b>'+esc(tx(p.visit))+'</div>':''))+
+      mkBox(gkey(p.id))+videos(gkey(p.id))+'<div id="hereWiki"></div><div class="src">Rehber bilgisi doğrulanmış kaynaklardan derlendi.</div></div></div>';
+  }else{
+    el.innerHTML='<div class="hero"><div class="in"><h2>'+esc(p.n)+'</h2><div class="meta">'+meta+'</div><div class="note">Tanıtım ve fotoğraflar yükleniyor…</div></div></div>';
+    try{const i=await wikiInfo(p.wl,p.w);if(here.sel!==p)return;
+      const paras=i.extract.split('\n').filter(x=>x.trim().length>40);
+      el.innerHTML='<div class="hero">'+galUrls(i.imgs)+'<div class="in"><h2>'+esc(p.n)+'</h2><div class="meta">'+meta+'</div>'+hereBtns(p)+
+        '<h4>Tanıtım</h4>'+(paras.length?paras.slice(0,6).map(x=>'<p>'+esc(x)+'</p>').join(''):'<p class="note">Bu yer için Vikipedi\'de ayrıntılı tanıtım yok.</p>')+
+        '<div class="src">Kaynak: <a target="_blank" rel="noopener" href="'+esc(i.url)+'">Vikipedi</a> · fotoğraflar Wikimedia Commons (lisanslarıyla). Ziyaret saatlerini gitmeden kontrol edin.</div></div></div>';
+    }catch(e){if(here.sel===p)el.innerHTML='<div class="hero"><div class="in"><h2>'+esc(p.n)+'</h2><div class="meta">'+meta+'</div>'+hereBtns(p)+'<p class="note">Tanıtım şu an alınamadı. <button class="btn sm" data-hereretry="1">Tekrar dene</button></p></div></div>'}
+  }
+  renderHereList();
+}
+function renderHereList(){
+  $('#hereListH').hidden=!here.items.length;
+  $('#hereList').innerHTML=here.items.map(p=>'<button class="it" data-hereid="'+esc(p.id)+'" aria-expanded="'+(here.sel&&here.sel.id===p.id)+'"><span class="d" style="background:'+CAT[p.c].c+'"></span><span><b>'+esc(p.n)+(p.cur?'<span class="badge">Rehber</span>':'')+'</b><small>'+esc(p.sub||'')+'</small></span><span class="km">'+fKm(p.d)+'</span></button>').join('');
+}
+async function herePhotos(c){
+  try{const j=await fetchJ('https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=geosearch&ggsnamespace=6&ggscoord='+c[0]+'%7C'+c[1]+'&ggsradius=800&ggslimit=30&prop=imageinfo&iiprop=url|user&iiurlwidth=360',{},1,15000);
+    const L2=Object.values(j.query&&j.query.pages||{}).filter(x=>x.imageinfo&&/\.(jpe?g|png|webp)$/i.test(x.title)).slice(0,18);
+    $('#herePhH').hidden=!L2.length;
+    $('#herePhotos').innerHTML=L2.map(x=>'<a target="_blank" rel="noopener" href="'+esc(x.imageinfo[0].descriptionurl)+'" title="© '+esc(x.imageinfo[0].user)+'"><img src="'+esc(x.imageinfo[0].thumburl)+'" alt="" loading="lazy" onerror="this.parentNode.remove()"></a>').join('');
+  }catch(e){$('#herePhH').hidden=true}
+}
+async function hereLoad(c,label){
+  here.c=c;$('#hereStatus').textContent=(label||'Konumunuz')+' çevresindeki tarihî yerler aranıyor…';
+  const cur=G.filter(p=>p.lat!=null).map(p=>({...p,d:hav(c,[p.lat,p.lon])})).filter(p=>p.d<=12000);
+  let w=[];try{w=await wikiGeo(c,10000)}catch(e){}
+  here.items=[...cur,...w].sort((a,b)=>(a.d-(a.cur?400:a.hk?150:0))-(b.d-(b.cur?400:b.hk?150:0))).slice(0,40);
+  here.items.sort((a,b)=>a.d-b.d);
+  const first=[...here.items].sort((a,b)=>(a.d-(a.cur?400:a.hk?150:0))-(b.d-(b.cur?400:b.hk?150:0)))[0];
+  $('#hereStatus').textContent=here.items.length?(label||'Konumunuz')+': '+here.items.length+' yer bulundu. Listeden başka bir yere dokunarak tanıtımını açın.':'Yakında kayıtlı tarihî yer bulunamadı.';
+  if(first)hereShow(first);else{$('#hereCard').innerHTML='';renderHereList()}
+  herePhotos(first&&first.d<1500?[first.lat,first.lon]:c);
+  const pts2=here.items.slice(0,25).map(p=>[p.lat,p.lon]);if(pts2.length){drawPois();map.fitBounds([c,...pts2.slice(0,8)],{padding:[30,30],maxZoom:16})}
+}
+$('#hereLoc').onclick=()=>{if(!navigator.geolocation){$('#hereStatus').textContent='Bu tarayıcı konum vermiyor; bir yer adı yazın.';return}
+  $('#hereStatus').textContent='Konumunuz alınıyor…';
+  navigator.geolocation.getCurrentPosition(p=>{setMe(p.coords.latitude,p.coords.longitude);hereLoad(me,'Konumunuz')},()=>{$('#hereStatus').textContent='Konum izni verilmedi. Tarayıcı ayarlarından izin verin ya da bir yer adı yazın.'},{enableHighAccuracy:true,timeout:15000})};
+$('#hereForm').onsubmit=async e=>{e.preventDefault();const q=$('#hereQ').value.trim();if(!q){$('#hereLoc').click();return}
+  const h=aliasHit(q);if(h){hereLoad([h.lat,h.lon],h.n);return}
+  $('#hereStatus').textContent='"'+q+'" aranıyor…';try{const g=await geocode(q);hereLoad([g.lat,g.lon],q)}catch(er){$('#hereStatus').textContent='"'+q+'" bulunamadı. Başka bir yazım deneyin.'}};
+$('#v-burada').addEventListener('click',e=>{
+  const it=e.target.closest('[data-hereid]');if(it){const p=here.items.find(x=>x.id===it.dataset.hereid);if(p){hereShow(p);$('#hereCard').scrollIntoView({behavior:'smooth',block:'start'})}return}
+  const z=e.target.closest('[data-herezoom]');if(z){const p=findPlace(z.dataset.herezoom);if(p){if($('#map').classList.contains('small'))$('#mapToggle').click();map.setView([p.lat,p.lon],17);window.scrollTo({top:0,behavior:'smooth'})}return}
+  if(e.target.closest('[data-hereretry]')&&here.sel)hereShow(here.sel);
+});
+function agWikiRefresh(pos){
+  if(AG.wikiBusy||(AG.wikiAt&&hav(AG.wikiAt,pos)<700))return;
+  AG.wikiBusy=true;AG.wikiAt=pos;
+  wikiGeo(pos,2500,60).then(w=>{AG.wiki=w.filter(p=>p.hk)}).catch(()=>{}).then(()=>{AG.wikiBusy=false});
+}
+
+/* ---------- çevrimdışı ---------- */
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+$('#offBtn').onclick=async()=>{
+  if(!('serviceWorker' in navigator)){$('#offSt').textContent='Bu tarayıcı çevrimdışı kullanımı desteklemiyor.';return}
+  const ps=G.filter(p=>p.city===city);const urls=new Set();
+  ps.forEach(p=>{(GAL[p.id]||(p.img?[p.img]:[])).forEach((f,i)=>urls.add(img(f,i?700:900)));(VID[p.id]||[]).forEach(([id])=>urls.add('https://i.ytimg.com/vi/'+id+'/hqdefault.jpg'))});
+  stopPool().forEach(s=>{if(ps.some(p=>p.id===gkey(s.id)))(GAL[gkey(s.id)]||[]).forEach((f,i)=>urls.add(img(f,i?700:900)))});
+  const C=CITY[city];const z=13,x0=Math.floor((C.c[1]+180)/360*2**z),y0=Math.floor((1-Math.log(Math.tan(C.c[0]*Math.PI/180)+1/Math.cos(C.c[0]*Math.PI/180))/Math.PI)/2*2**z);
+  for(let dx=-2;dx<=2;dx++)for(let dy=-2;dy<=2;dy++)urls.add('https://tile.openstreetmap.org/'+z+'/'+(x0+dx)+'/'+(y0+dy)+'.png');
+  let n=0;const all=[...urls];$('#offSt').textContent='İndiriliyor… 0/'+all.length;
+  for(const u of all){try{await fetch(u,{mode:'no-cors'})}catch(e){}n++;$('#offSt').textContent='İndiriliyor… '+n+'/'+all.length}
+  $('#offSt').textContent='Hazır: '+CITY[city].n+' rehberi, fotoğrafları ve merkez haritası internetsiz de açılır.';
+};
+
 /* ---------- i18n altyapısı ---------- */
 const I18N={
- tr:{app:'Gezi Rotam',tagline:'Tarihî yerler rehberi',ag:'🎧 Sesli',loc:'📍',t_today:'Bugün',t_near:'Yakınımda',t_route:'Rota',t_guide:'Rehber',t_info:'Bilgi',
+ tr:{app:'Gezi Rotam',tagline:'Tarihî yerler rehberi',ag:'🎧 Sesli',loc:'📍',t_today:'Bugün',t_here:'Burada',t_near:'Yakınımda',t_route:'Rota',t_guide:'Rehber',t_info:'Bilgi',
   ag_title:'Yaklaşınca sesli anlatım',ag_help:'Üstteki 🎧 Sesli düğmesine bir kez basın. Telefon konumunuzu izler; bu listedeki bir yere yaklaştığınızda anlatım kendiliğinden başlar. Ekran açık kalır; telefonu cebe koymadan önce sesi açın.',
   ag_pause:'Durdur',ag_resume:'Devam',ag_skip:'Atla',ag_off:'Kapat',ag_on:'Sesli rehber açık',ag_wait:'Konum bekleniyor…',ag_next:'En yakın',ag_listen:'Dinleniyor',lang:'Dil / Language',lang_note:'İçerik şimdilik Türkçe; İngilizce arayüz hazırlanıyor.',ag_when:'Ne zaman anlatsın?',m_auto:'Yaklaşınca',m_arrive:'Mekâna varınca',m_ask:'Önce sor',m_off:'Kendiliğinden başlamasın',ag_test:'Sesi dene',ag_rate:'Konuşma hızı',ag_askq:'Tanıtımı dinlemek ister misiniz?',ag_near:'Yakınınızda'},
- en:{app:'Gezi Rotam',tagline:'Historic sites guide',ag:'🎧 Audio',loc:'📍',t_today:'Today',t_near:'Nearby',t_route:'Route',t_guide:'Guide',t_info:'Info',
+ en:{app:'Gezi Rotam',tagline:'Historic sites guide',ag:'🎧 Audio',loc:'📍',t_today:'Today',t_here:'Here',t_near:'Nearby',t_route:'Route',t_guide:'Guide',t_info:'Info',
   ag_title:'Narration as you approach',ag_help:'Tap 🎧 Audio guide once. Your phone tracks your location and narration starts by itself when you get close to a place in this list. The screen stays on; turn the volume up first.',
   ag_pause:'Pause',ag_resume:'Resume',ag_skip:'Skip',ag_off:'Close',ag_on:'Audio guide on',ag_wait:'Waiting for location…',ag_next:'Nearest',ag_listen:'Playing',lang:'Dil / Language',lang_note:'Content is Turkish for now; the English version is in preparation.',ag_when:'When should it narrate?',m_auto:'On approach',m_arrive:'On arrival',m_ask:'Ask first',m_off:'Manual only',ag_test:'Test voice',ag_rate:'Speech rate',ag_askq:'Play the introduction?',ag_near:'Nearby'}};
 let lang=store.get('lang','tr');if(!I18N[lang])lang='tr';
@@ -819,14 +949,14 @@ function setCity(k,show){city=k;store.set('city',k);$('#citySel').value=k;render
 $('#citySel').onchange=()=>setCity($('#citySel').value,true);
 
 /* ---------- YAKLAŞINCA SESLİ ANLATIM ---------- */
-const AG={on:false,watch:null,wl:null,q:[],cur:null,paused:false,tok:0,heard:store.get('agHeard',{}),pos:null,ask:null,asked:{},
+const AG={on:false,watch:null,wl:null,q:[],cur:null,paused:false,tok:0,heard:store.get('agHeard',{}),pos:null,ask:null,asked:{},wiki:[],wikiAt:null,wikiBusy:false,
  mode:store.get('agMode','auto'),voice:store.get('agVoice',''),rate:store.get('agRate',0.95)};
-const agR0=p=>p.r||(p.c==='museum'?250:350);
+const agR0=p=>p.r||(p.w?120:(p.c==='museum'?250:350));
 const agR=p=>AG.mode==='arrive'?Math.max(60,Math.round(agR0(p)/3)):agR0(p);
 function agVoices(){if(!('speechSynthesis' in window))return[];const sc=v=>(/natural|neural|online/i.test(v.name)?6:0)+(/premium|enhanced|gelişmiş|yüksek/i.test(v.name)?5:0)+(/google/i.test(v.name)?3:0)+(v.localService?0:1);
   return speechSynthesis.getVoices().filter(v=>/^tr/i.test(v.lang)).sort((a,b)=>sc(b)-sc(a))}
 function agFillVoices(){const L2=agVoices(),sel=$('#agVoiceSel');if(!sel)return;
-  sel.innerHTML=L2.length?L2.map((v,i)=>'<option value="'+esc(v.name)+'">'+esc(v.name.replace(/\s*\(.*?Turkish.*?\)/i,''))+(i===0?' (önerilen)':'')+'</option>').join(''):'<option value="">Türkçe ses bulunamadı</option>';
+  sel.innerHTML=L2.length?L2.map((v,i)=>'<option value="'+esc(v.name)+'">'+esc(v.name.replace(/\s*[-(]?\s*Turkish.*$/i,''))+(i===0?' (önerilen)':'')+'</option>').join(''):'<option value="">Türkçe ses bulunamadı</option>';
   if(AG.voice&&L2.some(v=>v.name===AG.voice))sel.value=AG.voice;
   const good=L2.some(v=>/natural|neural|online|premium|enhanced|gelişmiş|google/i.test(v.name));
   $('#agVoiceNote').textContent=good?'Listenin başındaki ses cihazınızdaki en doğal Türkçe sestir.':'Bu cihazda yalnızca basit (robotik) Türkçe ses var. Daha doğal ses için: iPhone\'da Ayarlar › Erişilebilirlik › Seslendirilen İçerik › Sesler › Türkçe bölümünden Yelda\'nın Gelişmiş/Premium sürümünü indirin. Android\'de Google Konuşma Hizmetleri\'nde Türkçe yüksek kaliteli sesi indirin. Bilgisayarda Microsoft Edge\'deki "Emel (Natural)" sesi en doğal olanıdır.';
@@ -839,6 +969,7 @@ function agModeUI(){document.querySelectorAll('#agMode [data-m]').forEach(b=>b.s
 $('#agMode').onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;AG.mode=b.dataset.m;store.set('agMode',AG.mode);agModeUI();if(AG.pos)agCheck(AG.pos);agUI()};
 agModeUI();
 function agText(p){
+  if(p.w)return p.text||p.n;
   const s=(typeof stopPool==='function'?stopPool():[]).find(x=>gkey(x.id)===p.id&&x.sec);
   if(s)return s.n+'. '+s.sec.map(([h,b])=>h+'. '+b).join(' ');
   return tx(p.n)+'. '+(p.story?tx(p.story)+' ':'')+(p.facts||[]).map(tx).join(' ')+(p.visit?' Ziyaret notu: '+tx(p.visit):'');
@@ -851,15 +982,18 @@ function agSay(text,done){
     if(i===parts.length-1)u.onend=()=>{if(my===AG.tok&&done)done()};speechSynthesis.speak(u)});
 }
 function agNext(){
-  AG.cur=null;
-  while(AG.q.length){const p=AG.q.shift();if(p){AG.cur=p;AG.heard[p.id]=Date.now();store.set('agHeard',AG.heard);agSay(agText(p),()=>{agNext()});break}}
+  AG.cur=null;const p=AG.q.shift();
+  if(p){AG.cur=p;AG.heard[p.id]=Date.now();store.set('agHeard',AG.heard);
+    const play=()=>{if(AG.cur===p)agSay(agText(p),()=>{agNext()})};
+    if(p.w&&!p.text)wikiInfo(p.wl,p.w).then(i=>{p.text=p.n+'. '+wikiSpeech(i.extract)}).catch(()=>{p.text=p.n}).then(play);else play()}
   agUI();
 }
-function agPlay(id){const p=G.find(x=>x.id===id);if(!p)return;if(!('speechSynthesis' in window)){alert('Bu tarayıcı sesli anlatımı desteklemiyor.');return}
+function agPlay(id){const p=findPlace(id);if(!p)return;if(!('speechSynthesis' in window)){alert('Bu tarayıcı sesli anlatımı desteklemiyor.');return}
   if(!AG.on)$('#agBar').classList.add('on');AG.q=AG.q.filter(x=>x.id!==id);AG.q.unshift(p);AG.paused=false;agNext()}
 function agCheck(pos){
   AG.pos=pos;const now=Date.now();
-  G.forEach(p=>{if(p.lat==null)return;const d=hav(pos,[p.lat,p.lon]);
+  agWikiRefresh(pos);
+  [...G,...AG.wiki].forEach(p=>{if(p.lat==null)return;const d=hav(pos,[p.lat,p.lon]);
     if(d>agR(p)||(AG.heard[p.id]&&now-AG.heard[p.id]<6*3600e3)||AG.cur===p||AG.q.includes(p))return;
     if(AG.mode==='auto'||AG.mode==='arrive'){AG.q.push(p);if(navigator.vibrate)navigator.vibrate(200)}
     else if(AG.mode==='ask'&&!AG.ask&&!(AG.asked[p.id]&&now-AG.asked[p.id]<3600e3)){AG.ask=p;AG.asked[p.id]=now;if(navigator.vibrate)navigator.vibrate([150,80,150])}});
@@ -874,7 +1008,7 @@ function agUI(){
   if(AG.ask){$('#agNow').textContent=t('ag_near')+': '+tx(AG.ask.n);$('#agNext').textContent=t('ag_askq');return}
   $('#agNow').textContent=AG.cur?t('ag_listen')+': '+tx(AG.cur.n):t('ag_on')+' · '+t('m_'+AG.mode);
   let nx=t('ag_wait');
-  if(AG.pos){const c=G.filter(p=>p.lat!=null&&!(AG.heard[p.id]&&Date.now()-AG.heard[p.id]<6*3600e3)).map(p=>[p,hav(AG.pos,[p.lat,p.lon])]).sort((a,b)=>a[1]-b[1])[0];
+  if(AG.pos){const c=[...G,...AG.wiki].filter(p=>p.lat!=null&&!(AG.heard[p.id]&&Date.now()-AG.heard[p.id]<6*3600e3)).map(p=>[p,hav(AG.pos,[p.lat,p.lon])]).sort((a,b)=>a[1]-b[1])[0];
     nx=(AG.q.length?'Sırada: '+AG.q.map(p=>tx(p.n)).join(', ')+' · ':'')+(c?t('ag_next')+': '+tx(c[0].n)+' · '+fKm(c[1])+' (anlatım '+fKm(agR(c[0]))+' kala başlar)':'')}
   $('#agNext').textContent=nx;
 }
