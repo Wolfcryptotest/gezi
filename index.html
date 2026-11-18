@@ -107,6 +107,23 @@ header select option{color:#1f2a29}
 .seg{flex-wrap:wrap}.seg button{flex:1 1 40%;font-size:13px;padding:0 6px}
 .tabs{overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}.tab{flex:1 0 auto;padding:0 10px}
 #kindSeg button{flex:1 1 22%;font-size:14px}
+#plInt button{flex:1 1 45%;font-size:13.5px}
+.pday{background:var(--card);border:1px solid var(--line);border-radius:16px;margin:10px 0;overflow:hidden}
+.pday h3{margin:0;padding:10px 12px;font-size:16px;background:var(--soft);display:flex;justify-content:space-between;gap:8px}
+.pday h3 small{font-weight:400;color:var(--mute)}
+.pit{display:flex;gap:10px;padding:10px 12px;border-top:1px solid var(--line);align-items:flex-start}
+.pit .tm{flex:0 0 46px;font-weight:700;font-variant-numeric:tabular-nums}
+.pit .bd{flex:1;min-width:0}
+.pit .bd b{display:block}
+.pit .bd small{display:block;color:var(--mute)}
+.pit img{width:64px;height:64px;object-fit:cover;border-radius:10px;flex:none}
+.pit .btns{margin-top:6px}
+.pit.drv{background:rgba(201,138,18,.07)}
+.pit.meal{background:rgba(179,38,30,.06)}
+.pit.bed{background:rgba(15,107,102,.08)}
+.pnum{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#0f6b66;color:#fff;font-size:12px;font-weight:700;margin-right:6px}
+.psum{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;margin:10px 0}
+.psum b{font-size:18px}
 .hero{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:8px 0}
 .hero .gal{margin:0}.hero .gal figure{flex-basis:92%}.hero .gal img{height:240px;border-radius:0}
 .hero .in{padding:12px}
@@ -135,9 +152,9 @@ header select option{color:#1f2a29}
 <div class="wrap">
   <div id="tripbar"></div>
   <div class="tabs" role="tablist">
-    <button class="tab" data-v="bugun" aria-selected="true" data-i18n="t_today">Bugün</button>
+    <button class="tab" data-v="rota" aria-selected="true" data-i18n="t_route">Planla</button>
     <button class="tab" data-v="burada" aria-selected="false" data-i18n="t_here">Keşfet</button>
-    <button class="tab" data-v="rota" aria-selected="false" data-i18n="t_route">Rota</button>
+    <button class="tab" data-v="bugun" aria-selected="false" data-i18n="t_today">Hazır gezi</button>
     <button class="tab" data-v="bilgi" aria-selected="false" data-i18n="t_info">Bilgi</button>
   </div>
 
@@ -153,7 +170,7 @@ header select option{color:#1f2a29}
   </section>
 
   <!-- YAKINIMDA -->
-  <section class="view on" id="v-bugun">
+  <section class="view" id="v-bugun">
     <div class="row2"><label class="note" for="tStart">Çıkış saati</label><input type="time" id="tStart" value="09:00" style="flex:0 0 120px"><button class="btn alt" id="todayRoute" type="button">Haritada göster</button></div>
     <div class="row2"><button class="btn sm alt" id="todaySuggest" type="button">Önerilen sıra: Halfeti → Göbeklitepe → Balıklıgöl</button><button class="btn sm alt" id="todayReset" type="button">Baştan seç</button></div>
     <div class="status">Başlangıç Gaziantep. Aşağıdan sıradaki durağı seçin; her durakta fotoğraf, rehber anlatımı, sesli anlatım ve yol tarifi açılır. Satıra dokunarak açıp kapatın.</div>
@@ -176,7 +193,22 @@ header select option{color:#1f2a29}
   </section>
 
   <!-- ROTA -->
-  <section class="view" id="v-rota">
+  <section class="view on" id="v-rota">
+    <div class="tip" id="planBox" style="margin-top:6px"><b style="font-size:17px">🧭 Gezi planla</b>
+      <span class="note">Nereden çıkacağınızı ve gezmek istediğiniz il ya da ilçeyi yazın; duraklar, saatler, yemek, konaklama, yakıt ve dönüş dahil her şeyi planlayalım.</span>
+      <input id="plFrom" placeholder="Nereden? Boş bırakırsanız konumunuz kullanılır" style="margin-top:8px">
+      <input id="plTo" placeholder="Nereye? İl ya da ilçe: Safranbolu, Mardin, Ürgüp…" style="margin-top:6px">
+      <div class="row2" style="margin-top:6px"><label class="note" for="plDate">Tarih</label><input type="date" id="plDate" style="flex:1">
+        <label class="note" for="plTime">Çıkış</label><input type="time" id="plTime" value="08:00" style="flex:0 0 105px"></div>
+      <div class="row2"><label class="note" for="plDays">Gün</label><select id="plDays" style="flex:1"><option value="1">1 gün</option><option value="2" selected>2 gün</option><option value="3">3 gün</option><option value="4">4 gün</option></select>
+        <label class="note" for="plPace">Tempo</label><select id="plPace" style="flex:1"><option value="relax">Sakin</option><option value="normal" selected>Normal</option><option value="fast">Yoğun</option></select></div>
+      <div class="seg" id="plInt"><button class="btn alt sm" data-i="hist" aria-pressed="true" type="button">🏛 Tarihî</button><button class="btn alt sm" data-i="museum" aria-pressed="true" type="button">🏺 Müze</button><button class="btn alt sm" data-i="nature" aria-pressed="true" type="button">🌿 Doğa</button><button class="btn alt sm" data-i="worship" aria-pressed="true" type="button">🕌 Cami / kilise</button></div>
+      <label class="note" style="display:flex;gap:8px;align-items:center;margin:4px 0"><input type="checkbox" id="plRet" checked style="width:auto;min-height:0"> Dönüşü de plana ekle</label>
+      <button class="btn red" id="plGo" type="button" style="width:100%">Planı oluştur</button>
+    </div>
+    <div class="status" id="plStatus" hidden></div>
+    <div id="plOut"></div>
+    <details id="manualRoute" style="margin-top:12px"><summary style="cursor:pointer;font-weight:600;padding:8px 0">Elle rota oluştur (duraklar, yol üstü yakıt ve yemek)</summary>
     <button class="btn alt" id="presetUrfa" type="button" style="width:100%;margin-top:6px">Hazır gezi: Gaziantep → Göbeklitepe → Balıklıgöl</button>
     <div class="pts" id="pts"></div>
     <form class="row2" id="addForm">
@@ -196,6 +228,7 @@ header select option{color:#1f2a29}
     <div class="chips" id="chips2"></div>
     <div class="status" id="routeStatus">Başlangıç ve varış ekleyip Rotayı oluştur'a basın. Yol üzerindeki akaryakıt, yemek, mola ve tarihî yerler kilometreleriyle listelenir.</div>
     <div class="list" id="alongList"></div>
+    </details>
   </section>
 
   <!-- URFA REHBERİ -->
@@ -256,7 +289,7 @@ const fMin=s=>{const m=Math.round(s/60);return m<60?m+' dk':Math.floor(m/60)+' s
 const store={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const CAT={
  hist:{n:'Tarihî / gezilecek',c:'#0b4e4a'},museum:{n:'Müze',c:'#0f6b66'},view:{n:'Seyir noktası',c:'#2f7d4f'},
- food:{n:'Yemek',c:'#b3261e'},cafe:{n:'Kafe / çay',c:'#8a5a2b'},fuel:{n:'Akaryakıt',c:'#c98a12'},rest:{n:'Mola / dinlenme',c:'#5b6b2e'}};
+ food:{n:'Yemek',c:'#b3261e'},cafe:{n:'Kafe / çay',c:'#8a5a2b'},fuel:{n:'Akaryakıt',c:'#c98a12'},hotel:{n:'Konaklama',c:'#3949ab'},rest:{n:'Mola / dinlenme',c:'#5b6b2e'}};
 const HIST_TR={archaeological_site:'Arkeolojik alan',castle:'Kale',ruins:'Kalıntı',monument:'Anıt',memorial:'Anıt / hatıra',tomb:'Türbe / mezar',fort:'Kale / tabya',city_gate:'Şehir kapısı',caravanserai:'Kervansaray',mosque:'Tarihî cami',church:'Tarihî kilise',building:'Tarihî yapı',bridge:'Tarihî köprü',aqueduct:'Su kemeri',castle_wall:'Sur'};
 function cat(t){
   if(t.amenity==='fuel')return'fuel';
@@ -1002,22 +1035,23 @@ const FOODPICK=[
 const FOODNAMES=[['Çardaklı Köşk','Göl kenarında, manzaralı'],['Şehr-i Urfa','Haleplibahçe Cd.; akşam sıra gecesi'],['Sena Ocakbaşı','Küçük ocakbaşı; patlıcan kebabı'],['Paflar Ciğer','Çarşı içinde; patlıcanlı ve sebzeli kebap'],['Birinci Ciğer & Kebap','Sade sokak lokantası; ciğer'],['Hanehan Restaurant','Tarihî avluda, şık'],['Derdo Usta Ocakbaşı','Urfa kebabı ve ciğer']];
 const walkMin=d=>Math.max(1,Math.round(d*1.3/75));
 const walkLayer=L.layerGroup().addTo(map);
-const KQ={food:['restaurant','kebap','ciğer','lokanta','ocakbaşı'],cafe:['cafe','pastane','kahve','çay bahçesi','baklava'],fuel:['fuel','akaryakıt','opet','shell','petrol ofisi']};
-const KN={food:'yemek yeri',cafe:'kafe / tatlı yeri',fuel:'akaryakıt istasyonu'};
+const KQ={hotel:['hotel','otel','pansiyon','konak otel','butik otel'],food:['restaurant','kebap','ciğer','lokanta','ocakbaşı'],cafe:['cafe','pastane','kahve','çay bahçesi','baklava'],fuel:['fuel','akaryakıt','opet','shell','petrol ofisi']};
+const KN={hotel:'konaklama yeri',food:'yemek yeri',cafe:'kafe / tatlı yeri',fuel:'akaryakıt istasyonu'};
 async function foodLoad(c,label,kind){
   kind=kind||'food';here.kind=kind;kindUI();here.auto=1;
   go('burada');here.c=c;here.mode='food';walkLayer.clearLayers();
   $('#hereStatus').textContent=(label||'Konumunuz')+' çevresindeki '+KN[kind]+'leri aranıyor… (birkaç saniye)';
   $('#hereCard').innerHTML='';$('#herePhH').hidden=true;$('#herePhotos').innerHTML='';
-  const dl=kind==='fuel'?0.04:0.012,dn=kind==='fuel'?0.05:0.015,vb=(c[1]-dn)+','+(c[0]+dl)+','+(c[1]+dn)+','+(c[0]-dl);
+  const dl=kind==='fuel'?0.04:kind==='hotel'?0.03:0.012,dn=kind==='fuel'?0.05:kind==='hotel'?0.04:0.015,vb=(c[1]-dn)+','+(c[0]+dl)+','+(c[1]+dn)+','+(c[0]-dl);
   const seen=new Set(),res=[];
   for(const q of KQ[kind]){
     try{const r=await fetchJ('https://nominatim.openstreetmap.org/search?format=json&limit=40&bounded=1&viewbox='+vb+'&q='+encodeURIComponent(q),{},1,12000);
       r.forEach(x=>{if(!x.name||seen.has(x.osm_type+x.osm_id))return;seen.add(x.osm_type+x.osm_id);
         const isCafe=!/ciğer|ciger|kebap|kebab|lokanta|restoran|restaurant|ocakbaşı|ocakbasi|döner|lahmacun|sofra/i.test(x.name)&&(/cafe|bakery|confectionery|ice_cream/.test(x.type)||/pastane|kafe|cafe|kahve|baklava|çay/i.test(x.name));
         const isFuel=/fuel/.test(x.type)||/akaryak|petrol|opet|shell|\bbp\b|total|aytemiz|lukoil|türkiye petrolleri/i.test(x.name);
-        const ck=isFuel?'fuel':isCafe?'cafe':'food';if(ck!==kind)return;
-        res.push({id:'o'+x.osm_id,n:x.name,lat:+x.lat,lon:+x.lon,c:ck,sub:ck==='fuel'?'Akaryakıt':ck==='cafe'?'Kafe / tatlı':'Lokanta / kebap',tags:{}})});
+        const isHotel=/hotel|guest_house|hostel|motel|apartment/.test(x.type)||/otel|hotel|pansiyon|konukevi|hostel/i.test(x.name);
+        const ck=isHotel?'hotel':isFuel?'fuel':isCafe?'cafe':'food';if(ck!==kind)return;
+        res.push({id:'o'+x.osm_id,n:x.name,lat:+x.lat,lon:+x.lon,c:ck,sub:ck==='hotel'?'Konaklama':ck==='fuel'?'Akaryakıt':ck==='cafe'?'Kafe / tatlı':'Lokanta / kebap',tags:{}})});
       if(here.mode==='food'){$('#hereStatus').textContent='Aranıyor… '+res.length+' yer bulundu';here.items=res.map(p=>({...p,d:hav(c,[p.lat,p.lon])})).sort((a,b)=>a.d-b.d).slice(0,40);$('#hereListH').textContent='Yakındaki '+KN[kind]+'leri';$('#hereListH').hidden=!here.items.length;renderHereList();drawPois()}
     }catch(e){}
     await new Promise(r=>setTimeout(r,1050));
@@ -1061,6 +1095,210 @@ $('#kindSeg').onclick=e=>{const b=e.target.closest('[data-k]');if(!b)return;here
   const c=here.c||me||CITY[city].c;loadKind(c,here.lbl||(here.c?'Seçili yer':me?'Konumunuz':CITY[city].n))};
 document.addEventListener('click',e=>{const b=e.target.closest('[data-froute]');if(b)foodRoute(b.dataset.froute)});
 
+/* ================= GEZİ PLANLAYICI ================= */
+const PL={pool:[],excl:new Set(),last:null,layer:L.layerGroup().addTo(map)};
+const phm=m=>{m=Math.round(m);const h=Math.floor(m/60)%24;return String(h).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
+const estDrive=d=>d<500?d/1.2:(d*1.35)/(d>30000?75000/3600:30000/3600);   // saniye
+async function nomBB(q){
+  const j=await fetchJ('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=tr&accept-language=tr&q='+encodeURIComponent(q),{},2,15000);
+  if(!j.length)throw new Error('"'+q+'" bulunamadı');
+  const x=j[0],bb=x.boundingbox.map(Number);
+  let [s,n,w,e]=bb;const minD=0.09;if(n-s<minD){const c=(n+s)/2;s=c-minD;n=c+minD}if(e-w<minD*1.25){const c=(e+w)/2;w=c-minD*1.25;e=c+minD*1.25}
+  return{n:x.display_name.split(',')[0],lat:+x.lat,lon:+x.lon,bb:[s,n,w,e],full:x.display_name};
+}
+const KIND_RE={museum:/müze|museum|galeri|sergi/i,
+ worship:/cami|mescit|kilise|katedral|sinagog|manastır|şapel|mosque|church/i,
+ nature:/mağara|kanyon|şelale|göl|vadi|milli park|tabiat parkı|tabiat anıtı|plaj|yayla|kaplıca|mesire|ada\b|koy\b|dağ\b|cave|canyon|waterfall|lake/i,
+ hist:/kale|hisar|sur\b|surlar|kule|saray|han\b|kervansaray|bedesten|çarşı|hamam|medrese|köprü|su kemeri|çeşme|antik|ören|arkeolojik|höyük|tiyatro|anıt|türbe|kümbet|külliye|konak|\bev\b|kalıntı|nekropol|tapınak|kaya mezarı|sarnıç|saat kulesi|tarih|bazilika|agora|mozaik|kemer|zaviye|tekke|castle|fortress|ruin|archaeolog|tower|bridge|caravanserai/i};
+const BAD_RE=/stadyum|futbol|üniversite|okul|lise|hastane|deprem|idari birim|şehir|ilçe|mahalle|köy|sıradağ|nehir|akarsu|ırmak|yayımcı|şirket|istasyon|havalimanı|cadde|sokak|meydan|kavşak|baraj|santral|otel|alışveriş|insan yerleşimi|belediye|seçim|spor|fabrika|banka|kütüphane|sinema/i;
+function kindOf(t){if(!t||BAD_RE.test(t))return null;if(KIND_RE.museum.test(t))return'museum';if(KIND_RE.worship.test(t))return'worship';if(KIND_RE.nature.test(t))return'nature';if(KIND_RE.hist.test(t))return'hist';return null}
+function durOf(p){
+  const id=p.id||'',t=(p.tl||'')+' '+(p.n||'');
+  const C={gobekli:120,zeugmam:120,muze:90,harran:120,halfeti:150,karahan:60,gol:90,mozaik:60,akale:75,yesemek:90,zeugmaa:60,rumkale:60};
+  if(C[id])return C[id];
+  if(p.kind==='museum')return 75;
+  if(p.kind==='worship')return 20;
+  if(p.kind==='nature')return /kanyon|milli park|vadi/i.test(t)?90:45;
+  if(/çeşme|saat kulesi|kemer|anıt|kule|köprü/i.test(t))return 15;
+  if(/han\b|bedesten|çarşı|hamam|konak|\bev\b/i.test(t))return 40;
+  if(/antik|ören|arkeolojik|höyük|kale|hisar|saray|tiyatro/i.test(t))return 75;
+  return 40;
+}
+async function wdPlaces(bb){
+  const [s,n,w,e]=bb;
+  const q=`SELECT ?item ?label ?coord ?sl ?img ?tl ?tr WHERE {
+ SERVICE wikibase:box { ?item wdt:P625 ?coord . bd:serviceParam wikibase:cornerSouthWest "Point(${w} ${s})"^^geo:wktLiteral ; wikibase:cornerNorthEast "Point(${e} ${n})"^^geo:wktLiteral . }
+ ?item wikibase:sitelinks ?sl . FILTER(?sl>=1)
+ ?item wdt:P31 ?type .
+ FILTER(?type NOT IN (wd:Q532,wd:Q1529096,wd:Q17051044,wd:Q123705,wd:Q3957,wd:Q1147395,wd:Q48336,wd:Q15284,wd:Q2039348,wd:Q3914,wd:Q9842,wd:Q483110,wd:Q1248784,wd:Q4022,wd:Q8502,wd:Q55488,wd:Q79007,wd:Q34442,wd:Q12323,wd:Q11303,wd:Q515,wd:Q486972,wd:Q2074737,wd:Q1093829,wd:Q15127012,wd:Q13417250,wd:Q4830453,wd:Q3918,wd:Q875538,wd:Q5))
+ OPTIONAL { ?item wdt:P18 ?img }
+ OPTIONAL { ?type rdfs:label ?tl . FILTER(lang(?tl)='tr') }
+ OPTIONAL { ?art schema:about ?item ; schema:isPartOf <https://tr.wikipedia.org/> ; schema:name ?tr }
+ SERVICE wikibase:label { bd:serviceParam wikibase:language "tr,en". ?item rdfs:label ?label . }
+} ORDER BY DESC(?sl) LIMIT 400`;
+  const j=await fetchJ('https://query.wikidata.org/sparql?format=json&query='+encodeURIComponent(q),{headers:{Accept:'application/sparql-results+json'}},2,30000);
+  const by={};
+  for(const b of j.results.bindings){
+    const id='q'+b.item.value.split('/').pop();
+    const m=/Point\(([-\d.]+) ([-\d.]+)\)/.exec(b.coord.value);if(!m)continue;
+    const o=by[id]||(by[id]={id,n:b.label.value,lat:+m[2],lon:+m[1],sl:+b.sl.value,img:null,tls:new Set(),tr:null});
+    if(b.img)o.img=b.img.value.replace(/^http:/,'https:');if(b.tl)o.tls.add(b.tl.value);if(b.tr)o.tr=b.tr.value;
+  }
+  const out=[];
+  for(const o of Object.values(by)){
+    if(/^Q\d+$/.test(o.n))continue;
+    const tls=[...o.tls];if(tls.some(t=>BAD_RE.test(t)))continue;
+    let kind=null,tl='';for(const t of tls){const k=kindOf(t);if(k){kind=k;tl=t;break}}
+    if(!kind){const k=kindOf(o.n);if(k&&k!=='nature'){kind=k;tl=''}}
+    if(!kind)continue;
+    out.push({id:o.id,n:o.n,lat:o.lat,lon:o.lon,sl:o.sl,img:o.img,tl,kind,w:o.tr,wl:'tr',sub:tl||CAT[kind==='museum'?'museum':'hist'].n,c:kind==='museum'?'museum':kind==='nature'?'view':'hist',tags:{}});
+  }
+  return out;
+}
+function plInts(){return [...document.querySelectorAll('#plInt [data-i]')].filter(b=>b.getAttribute('aria-pressed')==='true').map(b=>b.dataset.i)}
+$('#plInt').onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;b.setAttribute('aria-pressed',b.getAttribute('aria-pressed')==='true'?'false':'true')};
+function plScore(p){return (p.cur?100:0)+p.sl*3+(p.img?3:0)+(p.w?2:0)+({museum:4,hist:3,nature:3,worship:0}[p.kind]||0)-(p.dur<=15?3:0)}
+async function plPool(to){
+  const [s,n,w,e]=to.bb,inBB=p=>p.lat>=s&&p.lat<=n&&p.lon>=w&&p.lon<=e;
+  const cur=G.filter(p=>p.lat!=null&&inBB(p)).map(p=>({...p,kind:p.c==='museum'?'museum':/cami/i.test(p.n)?'worship':'hist',sl:5,tl:p.sub}));
+  let wd=[];try{wd=await wdPlaces(to.bb)}catch(e){}
+  const core=s=>norm(s).replace(/camii|cami|muzesi|kalesi/g,'');
+  wd=wd.filter(x=>!cur.some(c=>core(c.n)===core(x.n)||hav([c.lat,c.lon],[x.lat,x.lon])<120));
+  const seen=new Set();wd=wd.filter(x=>{const k=core(x.n);if(seen.has(k))return false;seen.add(k);return true});
+  const all=[...cur,...wd];all.forEach(p=>{p.dur=durOf(p);p.score=plScore(p)});
+  return all.sort((a,b)=>b.score-a.score);
+}
+function plBuild(P){
+  const per={relax:4,normal:6,fast:8}[P.pace]||6,ints=P.ints;
+  let rem=PL.pool.filter(p=>!PL.excl.has(p.id)&&ints.includes(p.kind));
+  const days=[];let cur=[P.from.lat,P.from.lon];
+  for(let d=0;d<P.days;d++){
+    let t=d===0?P.start:9*60;const items=[];let lunch=false,cnt=0,wor=0;
+    const dayEnd=18.5*60;
+    while(rem.length&&cnt<per){
+      let best=null,bs=-1;
+      for(const p of rem){if(p.kind==='worship'&&wor>=2&&p.sl<5)continue;const dk=hav(cur,[p.lat,p.lon])/1000;const s=p.score/(1+dk/(cnt===0&&d===0?1e4:4));if(s>bs){bs=s;best=p}}
+      if(!best)break;
+      const dist=hav(cur,[best.lat,best.lon]),leg=estDrive(dist)/60;
+      if(!lunch&&cnt>0&&t+leg>=12.5*60){items.push({k:'lunch',t,loc:cur.slice()});t+=60;lunch=true}
+      if(t+leg+best.dur>dayEnd&&cnt>0)break;
+      items.push({k:'stop',p:best,t:t+leg,dist,leg});t+=leg+best.dur;cur=[best.lat,best.lon];
+      rem=rem.filter(x=>x!==best);cnt++;if(best.kind==='worship')wor++;
+    }
+    if(!lunch&&cnt>0&&t>13*60){const i=items.findIndex(x=>x.k==='stop'&&x.t+x.p.dur>=12.5*60);if(i>=0){const at=items[i].t+items[i].p.dur;items.splice(i+1,0,{k:'lunch',t:at,loc:[items[i].p.lat,items[i].p.lon]});for(let j=i+2;j<items.length;j++)items[j].t+=60;t+=60}}
+    const last=d===P.days-1;
+    if(last&&P.ret){const dist=hav(cur,[P.from.lat,P.from.lon]);if(dist>3000)items.push({k:'ret',t,dist,leg:estDrive(dist)/60,loc:[P.from.lat,P.from.lon]})}
+    else if(!last)items.push({k:'bed',t,loc:cur.slice()});
+    days.push({items,start:d===0?[P.from.lat,P.from.lon]:null});
+  }
+  return days;
+}
+async function plRefine(P,days){
+  // gerçek yol süreleriyle saatleri düzelt + haritaya çiz
+  PL.layer.clearLayers();const colors=['#b3261e','#0f6b66','#3949ab','#8a4b00'];let prev=[P.from.lat,P.from.lon],totD=0,totT=0,n=0;const allPts=[prev];
+  for(let d=0;d<days.length;d++){
+    const its=days[d].items,locs=[prev];
+    its.forEach(x=>{if(x.k==='stop')locs.push([x.p.lat,x.p.lon]);if(x.k==='ret')locs.push(x.loc)});
+    if(locs.length<2){continue}
+    try{
+      const r=await osrm('car',locs,true);
+      L.polyline(r.geometry.coordinates.map(([x,y])=>[y,x]),{color:colors[d%4],weight:5,opacity:.85}).addTo(PL.layer);
+      let li=0,t=d===0?P.start:9*60;
+      for(const x of its){
+        if(x.k==='stop'||x.k==='ret'){const lg=r.legs[li++];x.dist=lg.distance;x.leg=lg.duration/60;x.t=t+x.leg;t=x.t+(x.k==='stop'?x.p.dur:0);totD+=lg.distance;totT+=lg.duration}
+        else if(x.k==='lunch'){x.t=t;t+=60}
+        else if(x.k==='bed'){x.t=t}
+      }
+    }catch(e){its.forEach(x=>{if(x.leg){totD+=x.dist;totT+=x.leg*60}})}
+    its.forEach(x=>{if(x.k==='stop'){n++;x.no=n;allPts.push([x.p.lat,x.p.lon]);
+      L.marker([x.p.lat,x.p.lon],{icon:L.divIcon({className:'',html:'<span class="pnum" style="background:'+colors[d%4]+'">'+n+'</span>',iconSize:[22,22],iconAnchor:[11,11]})}).bindTooltip(x.p.n).addTo(PL.layer)}});
+    const lastStop=[...its].reverse().find(x=>x.k==='stop');if(lastStop)prev=[lastStop.p.lat,lastStop.p.lon];
+  }
+  if(allPts.length>1)map.fitBounds(allPts,{padding:[30,30],maxZoom:14});
+  return{totD,totT,n};
+}
+function plThumb(p){if(p.cur){const g=(GAL[gkey(p.id)]||[])[0]||p.img;return g?img(g,160):''}return p.img?p.img+(p.img.includes('?')?'&':'?')+'width=160':''}
+function plRender(P,days,tot){
+  const date=P.date?new Date(P.date+'T12:00:00'):null;
+  const dn=d=>{if(!date)return'';const x=new Date(date);x.setDate(x.getDate()+d);return x.toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long'})};
+  let h='<div class="psum"><b>'+esc(P.to.n)+' gezisi</b><div class="note">'+esc(P.from.n)+' çıkışlı · '+P.days+' gün · '+tot.n+' durak · toplam '+fKm(tot.totD)+' yol, '+fMin(tot.totT)+' sürüş</div>'+
+    '<div class="btns" style="margin-top:8px"><button class="btn sm" data-pl="share">🔗 Planı paylaş</button><button class="btn sm alt" data-pl="map">🗺 Haritada göster</button><button class="btn sm alt" data-pl="redo">🔄 Yeniden planla</button></div>'+
+    '<div class="note" style="margin-top:6px">Bir durağı çıkarmak için ✕\'e basın; plan kalan yerlerle kendini yeniden kurar. Ücret bilgisi olmayan yerlerde girişte sorun.</div></div>';
+  days.forEach((D,d)=>{
+    h+='<div class="pday"><h3>'+(d+1)+'. gün <small>'+esc(dn(d))+'</small></h3>';
+    if(d===0)h+='<div class="pit drv"><span class="tm">'+phm(P.start)+'</span><div class="bd"><b>🚗 Çıkış: '+esc(P.from.n)+'</b><small>Yola çıkmadan: yakıt, nakit ve Müzekart\'ı kontrol edin.</small></div></div>';
+    if(!D.items.length)h+='<div class="pit"><div class="bd"><small>Bu gün için uygun yer kalmadı; ilgi alanlarını genişletin ya da gün sayısını azaltın.</small></div></div>';
+    D.items.forEach(x=>{
+      if(x.k==='stop'){
+        const p=x.p,th=plThumb(p);
+        if(x.dist>20000){const mid=x.from||null;h+='<div class="pit drv"><span class="tm"></span><div class="bd"><b>🚗 '+fKm(x.dist)+' yol · '+fMin(x.leg*60)+'</b>'+(x.dist>180000?'<small>⛽ Yolun ortasında yakıt ve mola verin.</small>':'')+'</div></div>'}
+        h+='<div class="pit"><span class="tm">'+phm(x.t)+'</span>'+(th?'<img src="'+esc(th)+'" alt="" loading="lazy" onerror="this.remove()">':'')+'<div class="bd"><b><span class="pnum">'+(x.no||'')+'</span>'+esc(p.n)+'</b><small>'+esc(p.tl||p.sub||'')+' · ~'+p.dur+' dk gezi'+(x.dist<=20000&&x.dist>300?' · önceki duraktan '+fKm(x.dist)+', '+fMin(x.leg*60):'')+'</small>'+(p.cur?'<div style="margin-top:4px">'+feeBadge(gkey(p.id))+'</div>':'')+
+          '<div class="btns"><button class="btn sm" data-pl="info" data-id="'+esc(p.id)+'">Tanıtım</button><a class="btn sm alt" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination='+p.lat+','+p.lon+'">Yol tarifi</a><button class="btn sm alt" data-pl="del" data-id="'+esc(p.id)+'" aria-label="Çıkar">✕</button></div></div></div>';
+      }else if(x.k==='lunch'){
+        h+='<div class="pit meal"><span class="tm">'+phm(x.t)+'</span><div class="bd"><b>🍽 Öğle yemeği (~1 saat)</b><small>Bu noktanın yakınındaki lokantaları haritada görün.</small><div class="btns"><button class="btn sm" data-pl="near" data-k="food" data-ll="'+x.loc.join(',')+'">Yakındaki yemek yerleri</button><button class="btn sm alt" data-pl="near" data-k="cafe" data-ll="'+x.loc.join(',')+'">Kafe / tatlı</button></div></div></div>';
+      }else if(x.k==='bed'){
+        h+='<div class="pit bed"><span class="tm">'+phm(x.t)+'</span><div class="bd"><b>🛏 Konaklama</b><small>Gün burada biter; ertesi sabah 09:00\'da devam. Akşam yemeği için de yakındaki yerlere bakın.</small><div class="btns"><button class="btn sm" data-pl="near" data-k="hotel" data-ll="'+x.loc.join(',')+'">Yakındaki oteller</button><button class="btn sm alt" data-pl="near" data-k="food" data-ll="'+x.loc.join(',')+'">Akşam yemeği</button></div></div></div>';
+      }else if(x.k==='ret'){
+        h+='<div class="pit drv"><span class="tm">'+phm(x.t-x.leg)+'</span><div class="bd"><b>🏁 Dönüş: '+esc(P.from.n)+'</b><small>'+fKm(x.dist)+' · '+fMin(x.leg*60)+' · varış yaklaşık '+phm(x.t)+(x.dist>180000?' · ⛽ yolda bir yakıt ve mola verin':'')+'</small></div></div>';
+      }
+    });
+    h+='</div>';
+  });
+  if(PL.excl.size)h+='<button class="btn sm alt" data-pl="reset">Çıkardığım '+PL.excl.size+' yeri geri ekle</button>';
+  $('#plOut').innerHTML=h;
+}
+async function plRun(fromNew){
+  const st=$('#plStatus');st.hidden=false;
+  try{
+    const toQ=$('#plTo').value.trim();if(!toQ){st.textContent='Nereye gideceğinizi yazın (il ya da ilçe).';return}
+    const P={days:+$('#plDays').value,pace:$('#plPace').value,ints:plInts(),ret:$('#plRet').checked,date:$('#plDate').value,start:(()=>{const [a,b]=($('#plTime').value||'08:00').split(':').map(Number);return a*60+b})()};
+    if(!P.ints.length){st.textContent='En az bir ilgi alanı seçin.';return}
+    if(fromNew||!PL.last||PL.last.toQ!==toQ||PL.last.fromQ!==$('#plFrom').value.trim()){
+      PL.excl=new Set();
+      const fromQ=$('#plFrom').value.trim();
+      st.textContent='Başlangıç noktası bulunuyor…';
+      if(fromQ){const f=await nomBB(fromQ);P.from={n:f.n,lat:f.lat,lon:f.lon}}
+      else{const pos=await new Promise((ok,no)=>{if(!navigator.geolocation)return no(new Error('konum'));navigator.geolocation.getCurrentPosition(p=>ok(p.coords),()=>no(new Error('konum')),{enableHighAccuracy:true,timeout:12000})}).catch(()=>null);
+        if(!pos){st.textContent='Konumunuz alınamadı; "Nereden?" kutusuna bir yer yazın.';return}
+        setMe(pos.latitude,pos.longitude);P.from={n:'Konumunuz',lat:pos.latitude,lon:pos.longitude}}
+      await new Promise(r=>setTimeout(r,1100));
+      st.textContent='"'+toQ+'" bulunuyor…';
+      P.to=await nomBB(toQ);
+      st.textContent=P.to.n+' çevresindeki tarihî yerler, müzeler ve doğal güzellikler toplanıyor…';
+      PL.pool=await plPool(P.to);
+      PL.last={toQ,fromQ,from:P.from,to:P.to};
+    }else{P.from=PL.last.from;P.to=PL.last.to}
+    if(!PL.pool.length){st.textContent=P.to.n+' için gezilecek yer bulunamadı. Daha geniş bir yer (il adı) deneyin.';return}
+    const days=plBuild(P);
+    st.textContent='Yol süreleri hesaplanıyor…';
+    const tot=await plRefine(P,days);
+    PL.lastP=P;PL.lastDays=days;
+    plRender(P,days,tot);
+    st.textContent=P.to.n+' için '+PL.pool.filter(p=>P.ints.includes(p.kind)).length+' aday yer içinden en önemlileri seçildi.';
+    store.set('plan',{f:$('#plFrom').value,t:toQ,d:P.days,p:P.pace,i:P.ints,r:P.ret,s:$('#plTime').value});
+  }catch(e){st.textContent='Plan oluşturulamadı: '+(e.message||e)+'. Biraz sonra tekrar deneyin.'}
+}
+$('#plGo').onclick=()=>plRun(true);
+$('#plOut').addEventListener('click',e=>{
+  const b=e.target.closest('[data-pl]');if(!b)return;const a=b.dataset.pl;
+  if(a==='del'){PL.excl.add(b.dataset.id);plRun(false)}
+  else if(a==='reset'){PL.excl=new Set();plRun(false)}
+  else if(a==='redo'){plRun(true)}
+  else if(a==='map'){if($('#map').classList.contains('small'))$('#mapToggle').click();window.scrollTo({top:0,behavior:'smooth'})}
+  else if(a==='share'){const s=store.get('plan',null);const u=location.origin+location.pathname+'#plan='+encodeURIComponent(JSON.stringify(s));
+    (navigator.share?navigator.share({title:'Gezi planı: '+(s&&s.t),url:u}):navigator.clipboard.writeText(u).then(()=>alert('Plan bağlantısı kopyalandı.'))).catch(()=>{})}
+  else if(a==='near'){const [la,lo]=b.dataset.ll.split(',').map(Number);foodLoad([la,lo],'Plan durağı',b.dataset.k)}
+  else if(a==='info'){const p=PL.pool.find(x=>x.id===b.dataset.id);if(!p)return;
+    go('burada');here.auto=1;here.c=[p.lat,p.lon];here.lbl=p.n;here.mode='hist';here.kind='hist';kindUI();here.items=[{...p,d:0}];
+    if(p.cur||p.w){hereShow(here.items[0])}else{$('#hereCard').innerHTML='<div class="hero">'+(p.img?'<img src="'+esc(p.img+'?width=800')+'" alt="" style="width:100%;max-height:260px;object-fit:cover">':'')+'<div class="in"><h2>'+esc(p.n)+'</h2><div class="meta">'+esc(p.tl||'')+'</div><p class="note">Bu yer için Türkçe tanıtım metni yok.</p>'+ytLink(p.n)+'</div></div>';renderHereList()}
+    window.scrollTo({top:0,behavior:'smooth'})}
+});
+{const s=store.get('plan',null),m=location.hash.match(/#plan=(.+)/);let v=null;try{v=m?JSON.parse(decodeURIComponent(m[1])):s}catch(e){}
+ $('#plDate').value=new Date().toISOString().slice(0,10);
+ if(v){$('#plFrom').value=v.f||'';$('#plTo').value=v.t||'';$('#plDays').value=v.d||2;$('#plPace').value=v.p||'normal';$('#plRet').checked=v.r!==false;if(v.s)$('#plTime').value=v.s;
+   if(v.i)document.querySelectorAll('#plInt [data-i]').forEach(b=>b.setAttribute('aria-pressed',v.i.includes(b.dataset.i)));
+   if(m)setTimeout(()=>{go('rota');plRun(true)},600)}}
+
 /* ---------- çevrimdışı ---------- */
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 $('#offBtn').onclick=async()=>{
@@ -1077,10 +1315,10 @@ $('#offBtn').onclick=async()=>{
 
 /* ---------- i18n altyapısı ---------- */
 const I18N={
- tr:{app:'Gezi Rotam',tagline:'Tarihî yerler rehberi',ag:'🎧 Sesli',loc:'📍',t_today:'Bugün',t_here:'Keşfet',t_near:'Yakınımda',t_route:'Rota',t_guide:'Rehber',t_info:'Bilgi',
+ tr:{app:'Gezi Rotam',tagline:'Tarihî yerler rehberi',ag:'🎧 Sesli',loc:'📍',t_today:'Hazır gezi',t_here:'Keşfet',t_near:'Yakınımda',t_route:'Planla',t_guide:'Rehber',t_info:'Bilgi',
   ag_title:'Yaklaşınca sesli anlatım',ag_help:'Üstteki 🎧 Sesli düğmesine bir kez basın. Telefon konumunuzu izler; rehberdeki ya da Keşfet\'teki tarihî bir yere yaklaştığınızda anlatım kendiliğinden başlar. Ekran açık kalır; telefonu cebe koymadan önce sesi açın.',
   ag_pause:'Durdur',ag_resume:'Devam',ag_skip:'Atla',ag_off:'Kapat',ag_on:'Sesli rehber açık',ag_wait:'Konum bekleniyor…',ag_next:'En yakın',ag_listen:'Dinleniyor',lang:'Dil / Language',lang_note:'İçerik şimdilik Türkçe; İngilizce arayüz hazırlanıyor.',ag_when:'Ne zaman anlatsın?',m_auto:'Yaklaşınca',m_arrive:'Mekâna varınca',m_ask:'Önce sor',m_off:'Kendiliğinden başlamasın',ag_test:'Sesi dene',ag_rate:'Konuşma hızı',ag_askq:'Tanıtımı dinlemek ister misiniz?',ag_near:'Yakınınızda'},
- en:{app:'Gezi Rotam',tagline:'Historic sites guide',ag:'🎧 Audio',loc:'📍',t_today:'Today',t_here:'Explore',t_near:'Nearby',t_route:'Route',t_guide:'Guide',t_info:'Info',
+ en:{app:'Gezi Rotam',tagline:'Historic sites guide',ag:'🎧 Audio',loc:'📍',t_today:'Ready trip',t_here:'Explore',t_near:'Nearby',t_route:'Plan',t_guide:'Guide',t_info:'Info',
   ag_title:'Narration as you approach',ag_help:'Tap 🎧 Audio guide once. Your phone tracks your location and narration starts by itself when you get close to a place in this list. The screen stays on; turn the volume up first.',
   ag_pause:'Pause',ag_resume:'Resume',ag_skip:'Skip',ag_off:'Close',ag_on:'Audio guide on',ag_wait:'Waiting for location…',ag_next:'Nearest',ag_listen:'Playing',lang:'Dil / Language',lang_note:'Content is Turkish for now; the English version is in preparation.',ag_when:'When should it narrate?',m_auto:'On approach',m_arrive:'On arrival',m_ask:'Ask first',m_off:'Manual only',ag_test:'Test voice',ag_rate:'Speech rate',ag_askq:'Play the introduction?',ag_near:'Nearby'}};
 let lang=store.get('lang','tr');if(!I18N[lang])lang='tr';
