@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b4e4a">
+<title>Gezi Rotam</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light dark;
+--bg:light-dark(#f3ead9,#121c1b);--card:light-dark(#fffaf1,#1b2928);--ink:light-dark(#1f2a29,#ecf1ee);
+--mute:light-dark(#6b6457,#9fb0ac);--teal:light-dark(#0f6b66,#3fb8ae);--deep:#0b4e4a;
+--red:light-dark(#b3261e,#ff7a6b);--line:light-dark(#e2d5bd,#2c3d3b);--soft:light-dark(#f1e6cf,#223231)}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.45 Rubik,system-ui,sans-serif;overflow-x:clip;padding-bottom:env(safe-area-inset-bottom)}
+header{background:var(--deep);color:#fff;padding:calc(10px + env(safe-area-inset-top)) 12px 10px;display:flex;align-items:center;gap:10px}
+header h1{font-size:20px;margin:0;font-weight:800;flex:1}
+header button{background:rgba(255,255,255,.14);color:#fff;border:0;border-radius:10px;min-height:38px;padding:0 12px;font:500 14px Rubik,sans-serif;cursor:pointer}
+#map{height:38vh;min-height:220px;transition:height .25s}
+#map.small{height:0;min-height:0}
+.wrap{max-width:760px;margin:0 auto;padding:0 12px 60px}
+.tabs{display:flex;gap:6px;position:sticky;top:0;z-index:500;background:var(--bg);padding:8px 0}
+.tab{flex:1;min-height:42px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:500 14px Rubik,sans-serif;cursor:pointer;padding:0 4px}
+.tab[aria-selected=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.view{display:none}.view.on{display:block}
+.row2{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+input,select{min-height:44px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);padding:0 12px;font:16px Rubik,sans-serif}
+input{flex:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:0 14px;border-radius:12px;border:0;font:500 14px Rubik,sans-serif;cursor:pointer;background:var(--teal);color:#fff;text-decoration:none;white-space:nowrap}
+.btn.alt{background:transparent;color:var(--teal);border:1.5px solid var(--teal)}
+.btn.red{background:var(--red)}
+.btn.sm{min-height:34px;padding:0 10px;font-size:13px}
+.btn:disabled{opacity:.5}
+.btn:focus-visible,.tab:focus-visible,.it:focus-visible,.chip:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px}
+.chip{flex:none;min-height:34px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:500 13px Rubik,sans-serif;padding:0 12px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.chip i{width:10px;height:10px;border-radius:50%}
+.chip[aria-pressed=false]{opacity:.45}
+.status{font-size:14px;color:var(--mute);margin:6px 0}
+.list{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.it{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:11px 12px;color:var(--ink);font:inherit;cursor:pointer;min-height:52px}
+.it .d{width:12px;height:12px;border-radius:50%}
+.it b{display:block;font-weight:500;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it small{display:block;font-size:12.5px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it .km{font-weight:700;font-size:14px;white-space:nowrap;font-variant-numeric:tabular-nums;text-align:right}
+.it .km small{font-weight:400}
+.it[aria-expanded=true]{background:var(--soft)}
+.det{padding:12px;border-bottom:1px solid var(--line);background:var(--soft);font-size:15px}
+.det img{width:100%;max-height:220px;object-fit:cover;border-radius:10px;display:block;margin-bottom:8px}
+.det .cr{font-size:11px;color:var(--mute);margin:-4px 0 8px}
+.det ul{margin:6px 0;padding-left:18px}.det li{margin:2px 0}
+.det .kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 10px;font-size:14px;margin:6px 0}
+.det .kv span:nth-child(odd){color:var(--mute)}
+.dist{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+.dist div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.dist b{display:block;font-size:17px}.dist span{font-size:12.5px;color:var(--mute)}
+.det .btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.src{font-size:12px;color:var(--mute);margin-top:6px}
+.pts{display:grid;gap:6px;margin:8px 0}
+.pt{display:flex;gap:8px;align-items:center}
+.pt .n{width:26px;height:26px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:700;flex:none}
+.pt .x{background:none;border:0;color:var(--mute);font-size:20px;cursor:pointer;min-width:36px;min-height:36px}
+.sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0}
+.sum div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.sum b{display:block;font-size:19px}.sum span{font-size:12px;color:var(--mute)}
+#prompt{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:1000;background:var(--deep);color:#fff;border-radius:16px;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.3);display:none;max-width:720px;margin:0 auto}
+#prompt b{display:block;font-size:17px;margin:2px 0}
+#prompt .btns{display:flex;gap:8px;margin-top:10px}
+#prompt .btn{background:#ffd28a;color:#1f2a29}#prompt .btn.alt{background:transparent;color:#fff;border-color:#fff}
+#tripbar{display:none;background:var(--red);color:#fff;border-radius:12px;padding:10px 12px;margin:8px 0;font-size:14px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:2000;display:none;align-items:center;justify-content:center;padding:12px}
+.modal.on{display:flex}
+.modal .box{background:var(--card);border-radius:16px;width:100%;max-width:760px;overflow:hidden}
+.modal .hd{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;font-weight:700}
+.modal iframe{display:block;width:100%;height:70vh;border:0}
+.tip{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;font-size:15px}
+.tip b{display:block}
+.note{font-size:13px;color:var(--mute)}
+table.t{width:100%;border-collapse:collapse;font-size:15px}table.t td{padding:4px 0}table.t td:last-child{text-align:right;white-space:nowrap}
+.empty{padding:14px;color:var(--mute);font-size:15px}
+a{color:var(--teal)}
+.leaflet-container{font:inherit}
+</style>
+</head>
+<body>
+<header>
+  <h1>Gezi Rotam</h1>
+  <button id="locBtn">Konumum</button>
+  <button id="mapToggle">Haritayı gizle</button>
+</header>
+<div id="map"></div>
+
+<div class="wrap">
+  <div id="tripbar"></div>
+  <div class="tabs" role="tablist">
+    <button class="tab" data-v="yakin" aria-selected="true">Yakınımda</button>
+    <button class="tab" data-v="rota" aria-selected="false">Rota</button>
+    <button class="tab" data-v="rehber" aria-selected="false">Urfa rehberi</button>
+    <button class="tab" data-v="bilgi" aria-selected="false">Bilgi</button>
+  </div>
+
+  <!-- YAKINIMDA -->
+  <section class="view on" id="v-yakin">
+    <form class="row2" id="nearForm">
+      <input id="nearQ" placeholder="Konum yazın (il, ilçe, mekân) ya da Konumum'a basın">
+      <button class="btn">Bul</button>
+    </form>
+    <div class="row2">
+      <select id="radius" aria-label="Yarıçap"><option value="1500">1,5 km</option><option value="3000" selected>3 km</option><option value="7000">7 km</option><option value="15000">15 km</option><option value="30000">30 km</option></select>
+      <button class="btn alt" id="trafficBtn" type="button">Canlı trafik</button>
+    </div>
+    <div class="chips" id="chips1"></div>
+    <div class="status" id="nearStatus">Konumunuza yakın gezilecek yerleri görmek için Konumum'a basın ya da bir yer yazın.</div>
+    <div class="list" id="nearList"></div>
+  </section>
+
+  <!-- ROTA -->
+  <section class="view" id="v-rota">
+    <button class="btn alt" id="presetUrfa" type="button" style="width:100%;margin-top:6px">Hazır gezi: Gaziantep → Göbeklitepe → Balıklıgöl</button>
+    <div class="pts" id="pts"></div>
+    <form class="row2" id="addForm">
+      <input id="addQ" placeholder="Durak ekle: il, ilçe ya da mekân adı">
+      <button class="btn">Ekle</button>
+    </form>
+    <div class="row2">
+      <label class="note" for="dep">Çıkış saati</label><input type="time" id="dep" value="07:00" style="flex:0 0 120px">
+      <button class="btn" id="routeBtn" type="button">Rotayı oluştur</button>
+    </div>
+    <div class="sum" id="sum" hidden></div>
+    <div class="row2" id="routeTools" hidden>
+      <button class="btn red" id="tripBtn" type="button">Geziyi başlat</button>
+      <button class="btn alt" id="shareBtn" type="button">Linki kopyala</button>
+      <button class="btn alt" id="trafficBtn2" type="button">Canlı trafik</button>
+    </div>
+    <div class="chips" id="chips2"></div>
+    <div class="status" id="routeStatus">Başlangıç ve varış ekleyip Rotayı oluştur'a basın. Yol üzerindeki akaryakıt, yemek, mola ve tarihî yerler kilometreleriyle listelenir.</div>
+    <div class="list" id="alongList"></div>
+  </section>
+
+  <!-- URFA REHBERİ -->
+  <section class="view" id="v-rehber">
+    <div class="status" id="guideStatus">Doğrulanmış bilgiler ve fotoğraflar. Mesafeler konumunuzdan (konum yoksa Balıklıgöl'den).</div>
+    <div class="list" id="guideList"></div>
+  </section>
+
+  <!-- BİLGİ -->
+  <section class="view" id="v-bilgi">
+    <div class="tip"><b>HGS: Gaziantep Doğu – Şanlıurfa otoyolu (120 km)</b>
+      <table class="t"><tr><td>Otomobil, tek yön</td><td><b>101,65 TL</b></td></tr><tr><td>Otomobil, gidiş-dönüş</td><td><b>203,30 TL</b></td></tr><tr><td>Hafif ticari, tek yön</td><td>120,47 TL</td></tr><tr><td>Motosiklet, tek yön</td><td>45,18 TL</td></tr></table>
+      <span class="note">2026 KGM tarifesi, en uzak mesafe, KDV dahil. Bakiye yetmezse ihlalli geçiş kaydı oluşur; 15 gün içinde ödenirse yalnızca geçiş ücreti alınır.</span></div>
+    <div class="tip"><b>Göbeklitepe</b>2026 tam bilet 450 TL, Müzekart geçerli. Arabayı ören yerinin ~2–2,5 km aşağısındaki Karşılama Merkezi otoparkına bırakın; ücretsiz ring servisi var. Kış saatlerini muze.gov.tr'den kontrol edin.</div>
+    <div class="tip"><b>Şanlıurfa merkez otoparkı</b>İlk tercih Arkeoloji Müzesi / Haleplibahçe otoparkı; gerisi yürüyerek. Balıklıgöl çevresindeki otoparklar hafta sonu çabuk dolar.</div>
+    <div class="tip"><b>Gezi modu nasıl çalışır?</b>Rotayı oluşturup Geziyi başlat'a basın. Telefon konumunuzu izler; önünüzdeki 4 km içinde tarihî bir yer ya da müze varsa "Uğramak ister misiniz?" diye sorar ve sıradaki akaryakıt istasyonunu gösterir. Ekran açık kalmalıdır.</div>
+    <div class="tip"><b>Veriler nereden geliyor?</b>Harita, yerler ve yollar OpenStreetMap'ten; rota ve yürüyüş/araç süreleri OSRM'den; tarihî yer özetleri ve fotoğraflar Vikipedi ve Wikimedia Commons'tan; canlı trafik Yandex'ten. Hepsi ücretsizdir. OSM'de puan ve yorum yoktur.</div>
+    <button class="btn alt" id="clearBtn" type="button">Kayıtlı rotayı sil</button>
+  </section>
+</div>
+
+<div id="prompt" role="alertdialog" aria-live="assertive"></div>
+<div class="modal" id="modal"><div class="box"><div class="hd"><span id="mTitle">Canlı trafik</span><button class="btn sm alt" id="mClose" type="button">Kapat</button></div><iframe id="mFrame" title="Canlı trafik"></iframe></div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+{
+/* ---------- yardımcılar ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const R=6371000,rad=d=>d*Math.PI/180;
+const hav=(a,b)=>{const dl=rad(b[0]-a[0]),dn=rad(b[1]-a[1]);const x=Math.sin(dl/2)**2+Math.cos(rad(a[0]))*Math.cos(rad(b[0]))*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(x))};
+const fKm=m=>m<1000?Math.round(m/10)*10+' m':(m/1000).toFixed(m<10000?1:0).replace('.',',')+' km';
+const fMin=s=>{const m=Math.round(s/60);return m<60?m+' dk':Math.floor(m/60)+' sa '+(m%60)+' dk'};
+const store={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const CAT={
+ hist:{n:'Tarihî / gezilecek',c:'#0b4e4a'},museum:{n:'Müze',c:'#0f6b66'},view:{n:'Seyir noktası',c:'#2f7d4f'},
+ food:{n:'Yemek',c:'#b3261e'},cafe:{n:'Kafe / çay',c:'#8a5a2b'},fuel:{n:'Akaryakıt',c:'#c98a12'},rest:{n:'Mola / dinlenme',c:'#5b6b2e'}};
+const HIST_TR={archaeological_site:'Arkeolojik alan',castle:'Kale',ruins:'Kalıntı',monument:'Anıt',memorial:'Anıt / hatıra',tomb:'Türbe / mezar',fort:'Kale / tabya',city_gate:'Şehir kapısı',caravanserai:'Kervansaray',mosque:'Tarihî cami',church:'Tarihî kilise',building:'Tarihî yapı',bridge:'Tarihî köprü',aqueduct:'Su kemeri',castle_wall:'Sur'};
+function cat(t){
+  if(t.amenity==='fuel')return'fuel';
+  if(t.amenity==='restaurant'||t.amenity==='fast_food')return'food';
+  if(t.amenity==='cafe')return'cafe';
+  if(t.highway==='rest_area'||t.highway==='services')return'rest';
+  if(t.tourism==='museum')return'museum';
+  if(t.tourism==='viewpoint')return'view';
+  if(t.historic||t.tourism==='attraction')return'hist';
+  return null;
+}
+function subOf(t,c){
+  if(c==='hist')return HIST_TR[t.historic]||(t.tourism==='attraction'?'Gezilecek yer':'Tarihî yer');
+  if(c==='food')return t.cuisine?('Yemek · '+t.cuisine.replace(/;/g,', ').replace(/_/g,' ')):'Yemek';
+  if(c==='fuel')return'Akaryakıt'+(t.brand?' · '+t.brand:'');
+  return CAT[c].n;
+}
+async function fetchJ(url,opt,tries=2){
+  for(let i=0;i<tries;i++){try{const r=await fetch(url,opt);if(r.ok)return await r.json()}catch(e){}await new Promise(r=>setTimeout(r,800))}
+  throw new Error('ağ');
+}
+const OVERPASS=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter'];
+async function overpass(q){
+  for(const u of OVERPASS){try{return await fetchJ(u,{method:'POST',body:'data='+encodeURIComponent(q)},1)}catch(e){}}
+  throw new Error('overpass');
+}
+async function geocode(q){
+  const j=await fetchJ('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=tr&accept-language=tr&q='+encodeURIComponent(q));
+  if(!j.length)throw new Error('bulunamadı');
+  return{n:q,lat:+j[0].lat,lon:+j[0].lon,full:j[0].display_name};
+}
+const OSRM={car:'https://routing.openstreetmap.de/routed-car/route/v1/driving/',foot:'https://routing.openstreetmap.de/routed-foot/route/v1/driving/'};
+async function osrm(mode,pts,full){
+  const c=pts.map(p=>p[1]+','+p[0]).join(';');
+  const j=await fetchJ(OSRM[mode]+c+'?overview='+(full?'full&geometries=geojson&steps=false':'false'));
+  if(!j.routes||!j.routes.length)throw new Error('rota');
+  return j.routes[0];
+}
+
+/* ---------- harita ---------- */
+const map=L.map('map',{zoomControl:true}).setView([37.15,38.79],8);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap katkıcıları'}).addTo(map);
+const poiLayer=L.layerGroup().addTo(map),routeLayer=L.layerGroup().addTo(map),ptLayer=L.layerGroup().addTo(map);
+let meMarker=null;
+$('#mapToggle').onclick=()=>{const m=$('#map');m.classList.toggle('small');$('#mapToggle').textContent=m.classList.contains('small')?'Haritayı göster':'Haritayı gizle';setTimeout(()=>map.invalidateSize(),300)};
+
+/* ---------- durum ---------- */
+let me=null;                 // [lat,lon] gerçek konum
+let nearCenter=null;         // yakınımda araması merkezi
+let pts=store.get('pts',[]); // rota noktaları
+let route=null;              // {coords,cum,dist,dur}
+let near=[],along=[];
+let filt=store.get('filt',{hist:1,museum:1,view:1,food:1,cafe:1,fuel:1,rest:1});
+let open=null,trip=null,dismissed=new Set();
+
+/* ---------- filtre çipleri ---------- */
+function chips(){
+  const h=Object.entries(CAT).map(([k,v])=>'<button class="chip" data-cat="'+k+'" aria-pressed="'+!!filt[k]+'"><i style="background:'+v.c+'"></i>'+v.n+'</button>').join('');
+  $('#chips1').innerHTML=h;$('#chips2').innerHTML=h;
+}
+
+/* ---------- liste satırları ---------- */
+function rowHTML(p,list){
+  const c=CAT[p.c];
+  const right=list==='along'
+    ?'<span class="km">'+Math.round(p.km/1000)+'. km<small>'+(p.eta||'')+'</small></span>'
+    :'<span class="km">'+fKm(p.d)+'<small>kuş uçuşu</small></span>';
+  const sub=list==='along'?(p.sub+' · rotadan '+fKm(p.off)):p.sub;
+  return '<button class="it" data-id="'+p.id+'" data-list="'+list+'" aria-expanded="'+(open===list+p.id)+'"><span class="d" style="background:'+c.c+'"></span><span><b>'+esc(p.n)+'</b><small>'+esc(sub)+'</small></span>'+right+'</button>'+(open===list+p.id?'<div class="det" id="det"></div>':'');
+}
+function renderList(list){
+  const arr=(list==='near'?near:along).filter(p=>filt[p.c]);
+  const el=list==='near'?$('#nearList'):$('#alongList');
+  el.innerHTML=arr.length?arr.slice(0,250).map(p=>rowHTML(p,list)).join(''):(list==='near'&&!near.length||list==='along'&&!along.length?'':'<div class="empty">Seçili türlerde yer yok.</div>');
+  if(open&&open.startsWith(list)){const p=arr.find(x=>list+x.id===open);if(p)detail(p,list)}
+  drawPois();
+}
+function drawPois(){
+  poiLayer.clearLayers();
+  const vis=$('#v-rota').classList.contains('on')?along:near;
+  vis.filter(p=>filt[p.c]).slice(0,300).forEach(p=>{
+    L.circleMarker([p.lat,p.lon],{radius:6,color:'#fff',weight:1.5,fillColor:CAT[p.c].c,fillOpacity:.95}).bindTooltip(p.n).on('click',()=>{const l=vis===along?'along':'near';open=l+p.id;renderList(l);document.querySelector('[data-id="'+p.id+'"][data-list="'+l+'"]')?.scrollIntoView({block:'center',behavior:'smooth'})}).addTo(poiLayer);
+  });
+}
+
+/* ---------- ayrıntı kartı ---------- */
+async function detail(p,list){
+  const el=$('#det');if(!el)return;
+  const t=p.tags||{};
+  const kv=[];
+  if(t.opening_hours)kv.push(['Açık',t.opening_hours]);
+  if(t.phone||t['contact:phone'])kv.push(['Telefon',t.phone||t['contact:phone']]);
+  if(t['addr:street'])kv.push(['Adres',(t['addr:street']+' '+(t['addr:housenumber']||'')).trim()+(t['addr:city']?', '+t['addr:city']:'')]);
+  if(t.start_date)kv.push(['Tarih',t.start_date]);
+  if(t.fuel_diesel==='yes'||t['fuel:diesel']==='yes')kv.push(['Yakıt','Dizel var'+(t['fuel:lpg']==='yes'?', LPG var':'')]);
+  if(t.description)kv.push(['Not',t.description]);
+  const web=t.website||t['contact:website'];
+  const g='https://www.google.com/maps/search/?api=1&query='+p.lat+','+p.lon;
+  const y='https://yandex.com.tr/maps/?pt='+p.lon+','+p.lat+'&z=16&l=map';
+  el.innerHTML=
+    '<div id="wiki"></div>'+
+    (p.facts?'<ul>'+p.facts.map(f=>'<li>'+esc(f)+'</li>').join('')+'</ul>':'')+
+    (p.visit?'<div class="tip" style="margin:6px 0"><b>Ziyaret</b>'+esc(p.visit)+'</div>':'')+
+    (kv.length?'<div class="kv">'+kv.map(([a,b])=>'<span>'+esc(a)+'</span><span>'+esc(b)+'</span>').join('')+'</div>':'')+
+    '<div class="dist"><div><b id="dW">…</b><span>Yürüyüş</span></div><div><b id="dC">…</b><span>Araçla</span></div></div>'+
+    '<div class="btns">'+
+      '<button class="btn sm" data-act="zoom">Haritada</button>'+
+      '<button class="btn sm alt" data-act="add">Rotaya ekle</button>'+
+      '<a class="btn sm alt" target="_blank" rel="noopener" href="'+g+'">Google</a>'+
+      '<a class="btn sm alt" target="_blank" rel="noopener" href="'+y+'">Yandex</a>'+
+      (web?'<a class="btn sm alt" target="_blank" rel="noopener" href="'+esc(web)+'">Web sitesi</a>':'')+
+    '</div><div class="src">'+(p.cur?'Rehber bilgisi doğrulanmış kaynaklardan.':'Bilgi kaynağı: OpenStreetMap')+'</div>';
+  el.querySelector('[data-act=zoom]').onclick=()=>{if($('#map').classList.contains('small'))$('#mapToggle').click();map.setView([p.lat,p.lon],16);window.scrollTo({top:0,behavior:'smooth'})};
+  el.querySelector('[data-act=add]').onclick=()=>{addPoint({n:p.n,lat:p.lat,lon:p.lon},true)};
+  // fotoğraf ve özet
+  const wk=$('#wiki');
+  if(p.img){wk.innerHTML='<img src="https://commons.wikimedia.org/wiki/Special:FilePath/'+encodeURIComponent(p.img)+'?width=900" alt="'+esc(p.n)+'" loading="lazy" onerror="this.remove()"><div class="cr">Foto: '+esc(p.by)+' / Wikimedia Commons</div>'}
+  else if(t.wikipedia&&/^tr:/.test(t.wikipedia)){
+    try{const s=await fetchJ('https://tr.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(t.wikipedia.slice(3).replace(/ /g,'_')),{},1);
+      if($('#wiki')===wk)wk.innerHTML=(s.thumbnail?'<img src="'+esc(s.originalimage?.source||s.thumbnail.source)+'" alt="'+esc(p.n)+'" loading="lazy">':'')+(s.extract?'<p style="margin:4px 0 8px">'+esc(s.extract)+'</p>':'')+'<div class="cr">Kaynak: <a target="_blank" rel="noopener" href="'+esc(s.content_urls?.mobile?.page||'#')+'">Vikipedi</a></div>';
+    }catch(e){}
+  }
+  // yürüme / araç mesafesi
+  const from=me||nearCenter||(pts[0]&&[pts[0].lat,pts[0].lon]);
+  if(!from){$('#dW').textContent='Konum yok';$('#dC').textContent='Konum yok';return}
+  const air=hav(from,[p.lat,p.lon]);
+  if(air>25000){$('#dW').textContent='Çok uzak'}
+  else osrm('foot',[from,[p.lat,p.lon]]).then(r=>{const e=$('#dW');if(e&&$('#det')===el)e.textContent=fKm(r.distance)+' · '+fMin(r.duration)}).catch(()=>{const e=$('#dW');if(e)e.textContent='~'+fKm(air*1.3)+' · '+fMin(air*1.3/1.3)});
+  osrm('car',[from,[p.lat,p.lon]]).then(r=>{const e=$('#dC');if(e&&$('#det')===el)e.textContent=fKm(r.distance)+' · '+fMin(r.duration)}).catch(()=>{const e=$('#dC');if(e)e.textContent='Hesaplanamadı'});
+}
+
+/* ---------- Overpass: yakınımda ---------- */
+function toPoi(e,ref){
+  const t=e.tags||{};const c=cat(t);if(!c||!t.name)return null;
+  const lat=e.lat??e.center?.lat,lon=e.lon??e.center?.lon;if(lat==null)return null;
+  return{id:e.type[0]+e.id,n:t['name:tr']||t.name,lat,lon,c,sub:subOf(t,c),tags:t,d:ref?hav(ref,[lat,lon]):0};
+}
+const FILTERS=r=>`nwr${r}[historic][name];nwr${r}[tourism~"^(museum|attraction|viewpoint)$"][name];nwr${r}[amenity~"^(restaurant|fast_food|cafe|fuel)$"][name];nwr${r}[highway~"^(rest_area|services)$"];`;
+async function loadNear(center,label){
+  nearCenter=center;open=null;
+  const r=+$('#radius').value;
+  $('#nearStatus').textContent=(label||'Konumunuz')+' çevresindeki yerler aranıyor…';
+  map.setView(center,r<=3000?15:r<=7000?13:r<=15000?12:11);
+  try{
+    const j=await overpass(`[out:json][timeout:25];(${FILTERS(`(around:${r},${center[0]},${center[1]})`)});out center tags 600;`);
+    const seen=new Set();
+    near=j.elements.map(e=>toPoi(e,center)).filter(p=>p&&!seen.has(p.n+p.c)&&seen.add(p.n+p.c)).sort((a,b)=>a.d-b.d);
+    const cnt=c=>near.filter(p=>p.c===c).length;
+    $('#nearStatus').textContent=(label||'Konumunuz')+' · '+fKm(r)+' içinde '+near.length+' yer ('+(cnt('hist')+cnt('museum')+cnt('view'))+' gezilecek, '+(cnt('food')+cnt('cafe'))+' yeme-içme, '+cnt('fuel')+' akaryakıt). Satıra dokunun.';
+    renderList('near');
+  }catch(e){$('#nearStatus').textContent='Yerler alınamadı (bağlantı ya da sunucu yoğun). Biraz sonra tekrar deneyin.'}
+}
+$('#nearForm').onsubmit=async e=>{e.preventDefault();const q=$('#nearQ').value.trim();if(!q){locate(true);return}
+  try{$('#nearStatus').textContent='Konum aranıyor…';const g=await geocode(q);loadNear([g.lat,g.lon],q)}catch(er){$('#nearStatus').textContent='"'+q+'" bulunamadı. Başka bir yazım deneyin.'}};
+$('#radius').onchange=()=>{if(nearCenter)loadNear(nearCenter,$('#nearQ').value.trim()||'Konumunuz')};
+
+/* ---------- konum ---------- */
+function setMe(lat,lon){
+  me=[lat,lon];
+  if(!meMarker)meMarker=L.circleMarker(me,{radius:8,color:'#fff',weight:3,fillColor:'#1a73e8',fillOpacity:1}).addTo(map).bindTooltip('Siz');
+  else meMarker.setLatLng(me);
+}
+function locate(thenNear){
+  if(!navigator.geolocation){$('#nearStatus').textContent='Bu tarayıcı konum vermiyor; bir yer adı yazın.';return}
+  $('#nearStatus').textContent='Konumunuz alınıyor…';
+  navigator.geolocation.getCurrentPosition(p=>{setMe(p.coords.latitude,p.coords.longitude);if(thenNear){$('#nearQ').value='';loadNear(me,'Konumunuz')}renderGuide()},
+    ()=>{$('#nearStatus').textContent='Konum izni verilmedi. Tarayıcı ayarlarından izin verin ya da bir yer adı yazın.'},{enableHighAccuracy:true,timeout:15000});
+}
+$('#locBtn').onclick=()=>{go('yakin');locate(true)};
+
+/* ---------- rota ---------- */
+function renderPts(){
+  $('#pts').innerHTML=pts.map((p,i)=>'<div class="pt"><span class="n">'+(i===0?'A':i===pts.length-1?'B':i)+'</span><span style="flex:1"><b style="font-weight:500">'+esc(p.n)+'</b></span>'+(i>0&&i<pts.length-1?'':'')+'<button class="x" data-rm="'+i+'" aria-label="Kaldır">×</button></div>').join('')||'<div class="note">Henüz durak yok. İlk eklediğiniz başlangıç, son eklediğiniz varış olur.</div>';
+  ptLayer.clearLayers();
+  pts.forEach((p,i)=>L.marker([p.lat,p.lon],{title:p.n}).bindTooltip((i===0?'A: ':i===pts.length-1?'B: ':i+': ')+p.n).addTo(ptLayer));
+  store.set('pts',pts);
+}
+function addPoint(p,insertSmart){
+  if(insertSmart&&route&&pts.length>=2){
+    // rota üzerindeki konumuna göre araya yerleştir
+    const k=kmOn([p.lat,p.lon]).km;let idx=pts.length-1;
+    for(let i=1;i<pts.length;i++){if(kmOn([pts[i].lat,pts[i].lon]).km>k){idx=i;break}}
+    pts.splice(idx,0,p);renderPts();go('rota');buildRoute();return;
+  }
+  pts.push(p);renderPts();
+}
+$('#addForm').onsubmit=async e=>{e.preventDefault();const q=$('#addQ').value.trim();if(!q)return;
+  if(/^konum/i.test(q)&&me){addPoint({n:'Konumum',lat:me[0],lon:me[1]});$('#addQ').value='';return}
+  try{$('#routeStatus').textContent='"'+q+'" aranıyor…';const g=await geocode(q);addPoint({n:q,lat:g.lat,lon:g.lon});$('#addQ').value='';$('#routeStatus').textContent=pts.length<2?'Bir durak daha ekleyin.':'Rotayı oluştur\'a basın.'}
+  catch(er){$('#routeStatus').textContent='"'+q+'" bulunamadı.'}};
+$('#pts').onclick=e=>{const b=e.target.closest('[data-rm]');if(b){pts.splice(+b.dataset.rm,1);renderPts()}};
+$('#presetUrfa').onclick=()=>{pts=[{n:'Gaziantep',lat:37.0662,lon:37.3833},{n:'Göbeklitepe',lat:37.2233,lon:38.9224},{n:'Balıklıgöl, Şanlıurfa',lat:37.1477,lon:38.7844}];$('#dep').value='07:00';renderPts();buildRoute()};
+
+function kmOn(ll){ // rota üzerindeki en yakın nokta
+  let best=1e12,bi=0;const c=route.coords;const step=c.length>4000?3:1;
+  for(let i=0;i<c.length;i+=step){const d=hav(ll,c[i]);if(d<best){best=d;bi=i}}
+  return{km:route.cum[bi],off:best};
+}
+function simplify(c,maxPts){ // eşit aralıklı örnekleme
+  if(c.length<=maxPts)return c;const out=[];const s=(c.length-1)/(maxPts-1);
+  for(let i=0;i<maxPts;i++)out.push(c[Math.round(i*s)]);return out;
+}
+async function buildRoute(){
+  if(pts.length<2){$('#routeStatus').textContent='En az iki durak gerekli.';return}
+  $('#routeStatus').textContent='Rota hesaplanıyor…';$('#routeBtn').disabled=true;open=null;
+  try{
+    const r=await osrm('car',pts.map(p=>[p.lat,p.lon]),true);
+    const coords=r.geometry.coordinates.map(([x,y])=>[y,x]);
+    const cum=[0];for(let i=1;i<coords.length;i++)cum.push(cum[i-1]+hav(coords[i-1],coords[i]));
+    route={coords,cum,dist:r.distance,dur:r.duration,legs:r.legs};
+    routeLayer.clearLayers();
+    L.polyline(coords,{color:'#0b4e4a',weight:7,opacity:.35}).addTo(routeLayer);
+    L.polyline(coords,{color:'#0f6b66',weight:4}).addTo(routeLayer);
+    map.fitBounds(L.latLngBounds(coords),{padding:[20,20]});
+    const [h,m]=($('#dep').value||'07:00').split(':').map(Number);const arr=new Date();arr.setHours(h,m+Math.round(r.duration/60),0);
+    $('#sum').hidden=false;
+    $('#sum').innerHTML='<div><b>'+fKm(r.distance)+'</b><span>Toplam yol</span></div><div><b>'+fMin(r.duration)+'</b><span>Sürüş (molasız)</span></div><div><b>'+arr.toTimeString().slice(0,5)+'</b><span>Tahmini varış</span></div>';
+    $('#routeTools').hidden=false;
+    store.set('pts',pts);
+    await loadAlong();
+  }catch(e){$('#routeStatus').textContent='Rota hesaplanamadı. Durakları ya da bağlantıyı kontrol edin.'}
+  $('#routeBtn').disabled=false;
+}
+$('#routeBtn').onclick=buildRoute;
+
+async function loadAlong(){
+  $('#routeStatus').textContent='Yol üzerindeki akaryakıt, yemek, mola ve tarihî yerler aranıyor…';
+  const long=route.dist>400000;
+  const s=simplify(route.coords,long?90:70).map(p=>p[0].toFixed(4)+','+p[1].toFixed(4)).join(',');
+  const q=`[out:json][timeout:60];(
+    nwr(around:${long?400:350},${s})[amenity=fuel];
+    nwr(around:400,${s})[highway~"^(rest_area|services)$"];
+    nwr(around:${long?500:800},${s})[amenity~"^(restaurant|fast_food|cafe)$"][name];
+    nwr(around:${long?2500:4000},${s})[historic~"^(archaeological_site|castle|ruins|monument|tomb|fort|caravanserai|city_gate|bridge|aqueduct|mosque|church)$"][name];
+    nwr(around:${long?2500:4000},${s})[tourism~"^(museum|attraction|viewpoint)$"][name];
+  );out center tags 900;`;
+  try{
+    const j=await overpass(q);
+    const [h,m]=($('#dep').value||'07:00').split(':').map(Number);
+    const seen=new Set();
+    along=j.elements.map(e=>{const p=toPoi(e,null)||(e.tags&&(e.tags.highway==='rest_area'||e.tags.highway==='services')?{id:e.type[0]+e.id,n:'Mola yeri',lat:e.lat??e.center?.lat,lon:e.lon??e.center?.lon,c:'rest',sub:'Dinlenme alanı',tags:e.tags}:null);if(!p||p.lat==null)return null;
+      const o=kmOn([p.lat,p.lon]);p.km=o.km;p.off=o.off;
+      const t=new Date();t.setHours(h,m+Math.round(route.dur*(o.km/route.dist)/60),0);p.eta='~'+t.toTimeString().slice(0,5);
+      return p}).filter(p=>p&&!seen.has(p.n+p.c+Math.round(p.km/2000))&&seen.add(p.n+p.c+Math.round(p.km/2000))).sort((a,b)=>a.km-b.km);
+    const cnt=c=>along.filter(p=>p.c===c).length;
+    $('#routeStatus').textContent='Yol üzerinde '+cnt('fuel')+' akaryakıt, '+(cnt('food')+cnt('cafe'))+' yeme-içme, '+cnt('rest')+' mola yeri, '+(cnt('hist')+cnt('museum')+cnt('view'))+' tarihî/gezilecek yer. Sağdaki kilometre ve saat, rotadaki yerini gösterir.';
+    renderList('along');
+  }catch(e){$('#routeStatus').textContent='Rota hazır, ancak yol üstü yerler alınamadı (sunucu yoğun). Rotayı oluştur\'a tekrar basın.'}
+}
+
+/* ---------- gezi modu ---------- */
+$('#tripBtn').onclick=()=>{
+  if(trip){navigator.geolocation.clearWatch(trip);trip=null;$('#tripBtn').textContent='Geziyi başlat';$('#tripbar').style.display='none';$('#prompt').style.display='none';return}
+  if(!navigator.geolocation||!route)return;
+  trip=navigator.geolocation.watchPosition(onMove,()=>{$('#tripbar').style.display='block';$('#tripbar').textContent='Konum alınamıyor. Konum iznini açın.'},{enableHighAccuracy:true,maximumAge:10000});
+  $('#tripBtn').textContent='Geziyi bitir';$('#tripbar').style.display='block';$('#tripbar').textContent='Gezi modu açık. Konum bekleniyor…';
+};
+function onMove(pos){
+  setMe(pos.coords.latitude,pos.coords.longitude);
+  map.setView(me,Math.max(map.getZoom(),13));
+  const o=kmOn(me);const myKm=o.km;
+  const left=route.dist-myKm;
+  const fuel=along.find(p=>p.c==='fuel'&&p.km>myKm+200);
+  $('#tripbar').innerHTML='<b>Kalan: '+fKm(left)+' · ~'+fMin(route.dur*left/route.dist)+'</b>'+(fuel?'<br>Sıradaki akaryakıt: '+esc(fuel.n)+' · '+fKm(fuel.km-myKm)+' sonra':'')+(o.off>1500?'<br>Rotanın '+fKm(o.off)+' dışındasınız.':'');
+  if($('#prompt').style.display==='block')return;
+  const next=along.find(p=>(p.c==='hist'||p.c==='museum'||p.c==='view')&&!dismissed.has(p.id)&&p.km>myKm&&p.km-myKm<4000);
+  if(next){
+    dismissed.add(next.id);
+    $('#prompt').innerHTML='<span>'+esc(CAT[next.c].n)+' yaklaşıyor</span><b>'+esc(next.n)+'</b><span>'+fKm(next.km-myKm)+' ileride · rotadan '+fKm(next.off)+' uzakta</span><div>Uğramak ister misiniz?</div><div class="btns"><button class="btn" id="pYes">Evet, rotaya ekle</button><button class="btn alt" id="pInfo">Bilgi</button><button class="btn alt" id="pNo">Geç</button></div>';
+    $('#prompt').style.display='block';
+    try{navigator.vibrate&&navigator.vibrate(200)}catch(e){}
+    $('#pYes').onclick=()=>{$('#prompt').style.display='none';addPoint({n:next.n,lat:next.lat,lon:next.lon},true)};
+    $('#pNo').onclick=()=>{$('#prompt').style.display='none'};
+    $('#pInfo').onclick=()=>{$('#prompt').style.display='none';go('rota');open='along'+next.id;renderList('along');document.querySelector('[data-id="'+next.id+'"][data-list="along"]')?.scrollIntoView({block:'center'})};
+  }
+}
+
+/* ---------- paylaş ---------- */
+$('#shareBtn').onclick=async()=>{
+  const code=btoa(unescape(encodeURIComponent(JSON.stringify({p:pts.map(p=>[p.n,+p.lat.toFixed(5),+p.lon.toFixed(5)]),d:$('#dep').value}))));
+  const url=location.href.split('#')[0]+'#r='+code;
+  try{await navigator.clipboard.writeText(url);$('#shareBtn').textContent='Kopyalandı'}catch(e){prompt('Linki kopyalayın:',url)}
+  setTimeout(()=>$('#shareBtn').textContent='Linki kopyala',2000);
+};
+function readHash(){
+  const m=location.hash.match(/#r=(.+)/);if(!m)return false;
+  try{const o=JSON.parse(decodeURIComponent(escape(atob(m[1]))));pts=o.p.map(([n,lat,lon])=>({n,lat,lon}));if(o.d)$('#dep').value=o.d;return true}catch(e){return false}
+}
+
+/* ---------- trafik ---------- */
+function traffic(){
+  const c=me||map.getCenter();const lat=c.lat??c[0],lon=c.lng??c[1];
+  $('#mFrame').src='https://yandex.com.tr/map-widget/v1/?ll='+lon+','+lat+'&z='+Math.min(map.getZoom(),14)+'&l=map,trf';
+  $('#modal').classList.add('on');
+}
+$('#trafficBtn').onclick=traffic;$('#trafficBtn2').onclick=traffic;
+$('#mClose').onclick=()=>{$('#modal').classList.remove('on');$('#mFrame').src='about:blank'};
+
+/* ---------- Urfa rehberi (doğrulanmış içerik) ---------- */
+const G=[
+{id:'gobekli',n:'Göbeklitepe',lat:37.2233,lon:38.9224,c:'hist',sub:'Arkeolojik alan · UNESCO',img:'Archäologiepark_Göbekli_Tepe.jpg',by:'Philrock',
+ facts:['1963\'te İstanbul ve Chicago üniversitelerinin yüzey araştırmasında fark edildi.','1995\'te Klaus Schmidt başkanlığında Alman Arkeoloji Enstitüsü ve Şanlıurfa Müzesi kazılara başladı.','T biçimli dikilitaşların boyu 3–6 m, ağırlığı 40–60 ton.','1 Temmuz 2018\'de UNESCO Dünya Mirası Listesi\'ne girdi.'],
+ visit:'Arabayı ~2–2,5 km aşağıdaki Karşılama Merkezi otoparkına bırakın, ücretsiz ring ile çıkın. 1,5–2 saat ayırın.'},
+{id:'muze',n:'Şanlıurfa Arkeoloji Müzesi',q:'Şanlıurfa Arkeoloji Müzesi',c:'museum',sub:'Müze · Haleplibahçe',img:'Urfa_museum_Urfa_man_sept_2019_4717.jpg',by:'Dosseman',
+ facts:['Temeli 2012\'de atıldı, 2015\'te açıldı.','Göbeklitepe D yapısının replikası burada.','Balıklıgöl Heykeli (Urfa Adamı) 1993\'te Balıklıgöl çevresinde bulundu; ~11.500 yıllık, 180 cm, bilinen ilk gerçek boyutlu insan heykeli.'],
+ visit:'Şehirde arabayı bu müzenin otoparkına bırakıp gerisini yürüyün. 1–1,5 saat.'},
+{id:'mozaik',n:'Haleplibahçe Mozaik Müzesi',q:'Haleplibahçe Mozaik Müzesi',c:'museum',sub:'Müze · Roma mozaikleri',img:'Urfa_Haleplibahçe_Mosaic_Museum_Servant_and_zebra_mosaic_20247418.jpg',by:'Dosseman',
+ facts:['2006\'da tema parkı inşaatı sırasında Roma dönemi villa ve hamam kalıntıları bulundu.','Mozaikler yerinde korunarak üzerine kubbeli müze yapıldı, 2015\'te açıldı.','Avlanan Amazonlar mozaiği yaklaşık 1500 yıllık; Orfeus Mozaiği MS 194 tarihli.'],
+ visit:'Arkeoloji Müzesi ile aynı yerleşkede. 45 dk.'},
+{id:'gol',n:'Balıklıgöl',lat:37.1477,lon:38.7844,c:'hist',sub:'Kutsal göl · Halil-ür Rahman',img:'Balıklıgöl_Urfa2.jpg',by:'Anadolu',
+ facts:['Yaklaşık 150 m uzunluk, 30 m genişlik, 3–5 m derinlik; kaynak suyuyla beslenir.','Efsaneye göre Hz. İbrahim\'in atıldığı ateş suya, odunlar balığa dönüştü; sazanlar kutsal sayılır.'],
+ visit:'Müzeden Gölbaşı Parkı üzerinden 10–15 dk yürüme.'},
+{id:'halil',n:'Halil-ür Rahman Camii',q:'Halil-ür Rahman Camii, Şanlıurfa',c:'hist',sub:'Tarihî cami · 1211-12',img:'Halil_Ür-Rahman_Camii_9397.jpg',by:'Wikimedia Commons',
+ facts:['504 yılında Meryem Ana\'ya adanmış bir kilisenin yerinde.','Kitabesine göre 1211-12\'de el-Melikü\'l-Eşref Musa tarafından yaptırıldı.'],visit:'Balıklıgöl\'ün güneybatı kıyısında.'},
+{id:'rizvaniye',n:'Rızvaniye Camii ve Medresesi',q:'Rızvaniye Camii, Şanlıurfa',c:'hist',sub:'Tarihî cami · 1736',img:'Balikli_Göl_03.jpg',by:'Bernard Gagnon',
+ facts:['1736\'da (H. 1149) Rakka Valisi Rızvan Ahmet Paşa tarafından yaptırıldı.'],visit:'Balıklıgöl\'ün kuzey kıyısında.'},
+{id:'mevlid',n:'Mevlid-i Halil Camii ve Mağarası',q:'Mevlid-i Halil Camii, Şanlıurfa',c:'hist',sub:'Tarihî cami · 1523',img:'Mevlid-i_Halil_Mosque_19.jpg',by:'Bernard Gagnon',
+ facts:['1523\'te Muhammed Salih Paşa tarafından yaptırıldı.','İnanışa göre Hz. İbrahim avlunun güneyindeki mağarada doğdu.'],visit:'Kıyafet kuralı var; kadınlar için başörtüsü.'},
+{id:'kale',n:'Urfa Kalesi',lat:37.1479,lon:38.7835,c:'hist',sub:'Kale · seyir noktası',img:'Urfa_Castle_02.jpg',by:'Bernard Gagnon',
+ facts:['Yaygın görüşe göre MS 812–814\'te Abbasiler döneminde yapıldı.','Korint başlıklı iki sütun kaleden çok daha eski; Edessa (Osrhoene) Krallığı dönemine tarihleniyor.'],
+ visit:'~10 dk tırmanış. Gün batımından önce çıkın.'},
+{id:'gumruk',n:'Gümrük Hanı',q:'Gümrük Hanı, Şanlıurfa',c:'hist',sub:'Kervansaray · 1563',
+ facts:['1563\'te Kanuni döneminde Urfa Sancakbeyi Halhallı Behram Paşa tarafından yaptırıldı.','Avlusunda kahve ocakları ve tespihçiler var.'],visit:'Balıklıgöl\'den 8–10 dk yürüme.'},
+{id:'eyup',n:'Hz. Eyüp Sabır Makamı',q:'Eyyüp Peygamber Makamı, Şanlıurfa',c:'hist',sub:'Ziyaretgâh · Eyyübiye',img:'Urfa_Eyyup_Peygamber_mosque_exterior_3539.jpg',by:'Dosseman',
+ facts:['Kent merkezine ~3 km.','Mağara, şifalı kuyu, mescit ve türbeden oluşur.'],visit:'Araçla gidin; kendi otoparkı var.'},
+{id:'harran',n:'Harran',lat:36.862,lon:39.032,c:'hist',sub:'Kümbet evler · Ulu Cami',img:'Harran_beehive_houses_(2).JPG',by:'Zhengan',
+ facts:['Konik kubbeli evler ~250 yıllık.','Ulu Cami Emevi döneminden; II. Mervan döneminde yenilendi.','UNESCO Dünya Mirası Geçici Listesi\'nde.'],visit:'Şanlıurfa merkezden ~40 dk.'},
+{id:'halfeti',n:'Halfeti (Batık Şehir)',lat:37.2452,lon:37.8648,c:'hist',sub:'Fırat kıyısı · tekne turu',img:'Old_Halfeti_05.jpg',by:'Bernard Gagnon',
+ facts:['2000\'de tamamlanan Birecik Barajı ile büyük bölümü sular altında kaldı.','Tekne turlarıyla Rumkale ve batık cami minaresi görülür.','2013\'te Cittaslow unvanı aldı.'],visit:'Gaziantep dönüşünde Birecik\'ten sapmayla eklenebilir.'},
+{id:'karahan',n:'Karahantepe',q:'Karahantepe, Haliliye, Şanlıurfa',c:'hist',sub:'Arkeolojik alan · Taş Tepeler',
+ facts:['Şehir merkezine 46 km, Tek Tek Dağları Milli Parkı içinde.','Kazılar 2019\'da başladı; T biçimli dikilitaşlar ve heykeller bulundu.','Ziyaretçi merkezinin 2026 içinde devreye girmesi planlanıyor.'],visit:'Gitmeden ziyaret durumunu kontrol edin.'}
+].map(p=>({...p,cur:true,tags:{}}));
+let geoCache=store.get('geoCache',{});
+async function fillCoords(){
+  for(const p of G){
+    if(p.lat!=null)continue;
+    if(geoCache[p.id]){[p.lat,p.lon]=geoCache[p.id];continue}
+    try{const g=await geocode(p.q);p.lat=g.lat;p.lon=g.lon;geoCache[p.id]=[g.lat,g.lon];store.set('geoCache',geoCache)}catch(e){}
+    await new Promise(r=>setTimeout(r,1100));
+    renderGuide();
+  }
+  renderGuide();
+}
+function renderGuide(){
+  const ref=me||[37.1477,38.7844];
+  G.forEach(p=>{p.d=p.lat!=null?hav(ref,[p.lat,p.lon]):Infinity});
+  const arr=[...G].sort((a,b)=>a.d-b.d);
+  $('#guideStatus').textContent='Doğrulanmış bilgiler ve fotoğraflar. Mesafeler '+(me?'konumunuzdan':'Balıklıgöl\'den (Konumum\'a basarsanız sizden)')+' kuş uçuşu.';
+  $('#guideList').innerHTML=arr.map(p=>'<button class="it" data-id="'+p.id+'" data-list="guide" aria-expanded="'+(open==='guide'+p.id)+'"><span class="d" style="background:'+CAT[p.c].c+'"></span><span><b>'+esc(p.n)+'</b><small>'+esc(p.sub)+'</small></span><span class="km">'+(p.d===Infinity?'…':fKm(p.d))+'</span></button>'+(open==='guide'+p.id?'<div class="det" id="det"></div>':'')).join('');
+  if(open&&open.startsWith('guide')){const p=G.find(x=>'guide'+x.id===open);if(p&&p.lat!=null)detail(p,'guide')}
+}
+
+/* ---------- olaylar ---------- */
+function go(v){
+  document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.v===v));
+  document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id==='v-'+v));
+  if(v==='rehber')renderGuide();
+  drawPois();
+}
+document.addEventListener('click',e=>{
+  const tab=e.target.closest('.tab');if(tab){go(tab.dataset.v);return}
+  const ch=e.target.closest('.chip');if(ch){const k=ch.dataset.cat;filt[k]=filt[k]?0:1;store.set('filt',filt);chips();renderList('near');renderList('along');return}
+  const it=e.target.closest('.it');
+  if(it){const key=it.dataset.list+it.dataset.id;open=open===key?null:key;
+    if(it.dataset.list==='guide')renderGuide();else renderList(it.dataset.list);
+    const again=document.querySelector('.it[data-id="'+it.dataset.id+'"][data-list="'+it.dataset.list+'"]');again&&again.scrollIntoView({block:'nearest'});
+  }
+});
+$('#clearBtn').onclick=()=>{pts=[];route=null;along=[];routeLayer.clearLayers();renderPts();renderList('along');$('#sum').hidden=true;$('#routeTools').hidden=true;history.replaceState(null,'',location.pathname)};
+
+/* ---------- başlat ---------- */
+chips();
+const fromLink=readHash();
+renderPts();
+renderGuide();
+fillCoords();
+if(fromLink){go('rota');buildRoute()}
+}
+</script>
+</body>
+</html>
