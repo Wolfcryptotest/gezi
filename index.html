@@ -105,7 +105,8 @@ header select option{color:#1f2a29}
 .cityhero b{display:block;font-size:17px}.cityhero span{font-size:13px;color:var(--mute)}
 .seg{display:flex;gap:6px;margin:6px 0}
 .seg{flex-wrap:wrap}.seg button{flex:1 1 40%;font-size:13px;padding:0 6px}
-.tabs{overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}.tab{flex:1 0 auto;padding:0 12px}
+.tabs{overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}.tab{flex:1 0 auto;padding:0 10px}
+#kindSeg button{flex:1 1 22%;font-size:14px}
 .hero{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:8px 0}
 .hero .gal{margin:0}.hero .gal figure{flex-basis:92%}.hero .gal img{height:240px;border-radius:0}
 .hero .in{padding:12px}
@@ -135,18 +136,17 @@ header select option{color:#1f2a29}
   <div id="tripbar"></div>
   <div class="tabs" role="tablist">
     <button class="tab" data-v="bugun" aria-selected="true" data-i18n="t_today">Bugün</button>
-    <button class="tab" data-v="burada" aria-selected="false" data-i18n="t_here">Burada</button>
-    <button class="tab" data-v="yakin" aria-selected="false" data-i18n="t_near">Yakınımda</button>
+    <button class="tab" data-v="burada" aria-selected="false" data-i18n="t_here">Keşfet</button>
     <button class="tab" data-v="rota" aria-selected="false" data-i18n="t_route">Rota</button>
-    <button class="tab" data-v="rehber" aria-selected="false" data-i18n="t_guide">Rehber</button>
     <button class="tab" data-v="bilgi" aria-selected="false" data-i18n="t_info">Bilgi</button>
   </div>
 
   <!-- BURADA: tur rehberi -->
   <section class="view" id="v-burada">
     <form class="row2" id="hereForm"><input id="hereQ" placeholder="Türkiye'de bir yer yazın: Efes, Ani, Sümela…"><button class="btn">Göster</button></form>
-    <div class="row2"><button class="btn red" id="hereLoc" type="button" style="flex:1">📍 Bulunduğum yeri tanıt</button><button class="btn" id="foodBtn" type="button" style="flex:1;background:#b3261e;color:#fff">🍽 Yemek yerleri</button></div>
-    <div class="status" id="hereStatus">Konumunuzdaki tarihî yeri fotoğraf, tanıtım, video ve sesli anlatımla tanıtır. Türkiye'nin her yerinde çalışır.</div>
+    <div class="seg" id="kindSeg"><button class="btn alt sm" data-k="hist" type="button" aria-pressed="true">🏛 Tarihî</button><button class="btn alt sm" data-k="food" type="button">🍽 Yemek</button><button class="btn alt sm" data-k="cafe" type="button">☕ Kafe</button><button class="btn alt sm" data-k="fuel" type="button">⛽ Yakıt</button></div>
+    <button class="btn red" id="hereLoc" type="button" style="width:100%">📍 Konumumu kullan</button>
+    <div class="status" id="hereStatus">Yukarıdan ne aradığınızı seçin; bir yer yazın ya da konumunuzu kullanın. Tarihî yerler fotoğraf, tanıtım, video ve sesli anlatımla açılır. Türkiye'nin her yerinde çalışır.</div>
     <div id="hereCard"></div>
     <h3 class="sec2" id="hereListH" hidden>Etraftaki tarihî yerler</h3><div class="list" id="hereList"></div>
     <h3 class="sec2" id="herePhH" hidden>Bu çevreden fotoğraflar</h3><div class="pgrid" id="herePhotos"></div>
@@ -201,7 +201,7 @@ header select option{color:#1f2a29}
   <!-- URFA REHBERİ -->
   <section class="view" id="v-rehber">
     <div class="cityhero" id="cityHero"></div>
-    <div class="tip" id="agTip"><b data-i18n="ag_title">Yaklaşınca sesli anlatım</b><span data-i18n="ag_help">Üstteki 🎧 Sesli düğmesine bir kez basın. Telefon konumunuzu izler; bu listedeki bir yere yaklaştığınızda anlatım kendiliğinden başlar. Ekran açık kalır; telefonu cebe koymadan önce sesi açın.</span>
+    <div class="tip" id="agTip"><b data-i18n="ag_title">Yaklaşınca sesli anlatım</b><span data-i18n="ag_help">Üstteki 🎧 Sesli düğmesine bir kez basın. Telefon konumunuzu izler; rehberdeki ya da Keşfet'teki tarihî bir yere yaklaştığınızda anlatım kendiliğinden başlar. Ekran açık kalır; telefonu cebe koymadan önce sesi açın.</span>
       <div class="note" style="margin-top:8px" data-i18n="ag_when">Ne zaman anlatsın?</div>
       <div class="seg" id="agMode"><button class="btn alt sm" data-m="auto" type="button" data-i18n="m_auto">Yaklaşınca</button><button class="btn alt sm" data-m="arrive" type="button" data-i18n="m_arrive">Mekâna varınca</button><button class="btn alt sm" data-m="ask" type="button" data-i18n="m_ask">Önce sor</button><button class="btn alt sm" data-m="off" type="button" data-i18n="m_off">Kendiliğinden başlamasın</button></div>
       <div class="row2"><select id="agVoiceSel" aria-label="Ses" style="flex:1"></select><button class="btn sm alt" id="agTest" type="button" data-i18n="ag_test">Sesi dene</button></div>
@@ -214,11 +214,23 @@ header select option{color:#1f2a29}
 
   <!-- BİLGİ -->
   <section class="view" id="v-bilgi">
+    <h3 class="sec2" style="margin-top:4px">Sesli rehber ve ayarlar</h3>
+    <div id="setHost"></div>
+    <h3 class="sec2">Ödeme hazırlığı</h3>
+    <div class="tip"><b>Gitmeden önce</b><ul style="margin:4px 0 0;padding-left:18px">
+      <li><b>🏛 Bakanlık müze ve ören yerleri</b> (Göbeklitepe, Karahantepe, Şanlıurfa Müzesi, Haleplibahçe, Zeugma): T.C. vatandaşları Müzekart ile girer. Kart 300 TL, 1 yıl geçerli, her yere 2 giriş hakkı verir. e-Devlet ya da Müzekart uygulamasından önceden alın.</li>
+      <li>18 yaş altı ve 65 yaş üstü T.C. vatandaşları Bakanlık müzelerine ücretsiz girer (kimlik gösterin).</li>
+      <li><b>🏙 Belediye müzeleri</b> (Gaziantep Kalesi Panorama, Panorama 25 Aralık, Emine Göğüş Mutfak, Oyun ve Oyuncak, Hamam müzeleri): Müzekart geçmez. Bilet gişeden alınır; Gaziantep Kart ile indirim var.</li>
+      <li><b>🆓 Ücretsiz:</b> Balıklıgöl ve camileri, Mevlid-i Halil, Harran Ören Yeri, Rumkale ve Yesemek ören yerleri, Zincirli Bedesten, Bakırcılar Çarşısı.</li>
+      <li><b>💵 Nakit gereken yerler:</b> Halfeti tekne turu (yalnızca nakit bildiriliyor), Göbeklitepe servis aracı (şoföre ödenir), Harran kültür evleri, otoparklar, çay ve mırra.</li>
+      <li><b>🚧 Kapalı:</b> Urfa Kalesi kazı ve restorasyon nedeniyle kapalı (2026 sonu hedef).</li>
+    </ul><span class="note">Bilgiler Kasım 2026'da derlendi; ücretler değişebilir.</span></div>
+    <h3 class="sec2">Yol ve giriş bilgileri</h3>
     <div class="tip"><b>HGS: Gaziantep Doğu – Şanlıurfa otoyolu (120 km)</b>
       <table class="t"><tr><td>Otomobil, tek yön</td><td><b>101,65 TL</b></td></tr><tr><td>Otomobil, gidiş-dönüş</td><td><b>203,30 TL</b></td></tr><tr><td>Hafif ticari, tek yön</td><td>120,47 TL</td></tr><tr><td>Motosiklet, tek yön</td><td>45,18 TL</td></tr></table>
       <span class="note">2026 KGM tarifesi, en uzak mesafe, KDV dahil. Bakiye yetmezse ihlalli geçiş kaydı oluşur; 15 gün içinde ödenirse yalnızca geçiş ücreti alınır.</span></div>
     <div class="tip"><b>Müzekart</b>Yıllık 300 TL; 350'den fazla müze ve ören yerine, her birine yılda 2 giriş hakkı verir. e-Devlet ya da Türkiye Müzeleri uygulamasından alınır, gişede kimlikle girilir. Şanlıurfa'da Göbeklitepe, Harran, Şanlıurfa Kalesi, Şanlıurfa Müzesi ve Haleplibahçe'de geçerli. Balıklıgöl çevresi ücretsizdir; Halfeti tekne turu Müzekart kapsamında değildir. 1 Aralık 2026'dan itibaren yeni Müzekart tarifesi uygulanacak.</div>
-    <div class="tip"><b>Göbeklitepe</b>2026 tam bilet 450 TL, Müzekart geçerli. Arabayı ören yerinin ~2–2,5 km aşağısındaki Karşılama Merkezi otoparkına bırakın; ücretsiz ring servisi var. Kış saatlerini muze.gov.tr'den kontrol edin.</div>
+    <div class="tip"><b>Göbeklitepe</b>Bakanlık ören yeri: Müzekart ile girilir; tek bilet Karahantepe'yi de kapsar. Arabayı ören yerinin ~2–2,5 km aşağısındaki Karşılama Merkezi otoparkına bırakın; kazı alanına servis var (ücretli olabilir, bozuk nakit bulundurun). Kış saatlerini muze.gov.tr'den kontrol edin.</div>
     <div class="tip"><b>Şanlıurfa merkez otoparkı</b>İlk tercih Arkeoloji Müzesi / Haleplibahçe otoparkı; gerisi yürüyerek. Balıklıgöl çevresindeki otoparklar hafta sonu çabuk dolar.</div>
     <div class="tip"><b>Gezi modu nasıl çalışır?</b>Rotayı oluşturup Geziyi başlat'a basın. Telefon konumunuzu izler; önünüzdeki 4 km içinde tarihî bir yer ya da müze varsa "Uğramak ister misiniz?" diye sorar ve sıradaki akaryakıt istasyonunu gösterir. Ekran açık kalmalıdır.</div>
     <div class="tip"><b>Veriler nereden geliyor?</b>Harita, yerler ve yollar OpenStreetMap'ten; rota ve yürüyüş/araç süreleri OSRM'den; tarihî yer özetleri ve fotoğraflar Vikipedi ve Wikimedia Commons'tan; canlı trafik Yandex'ten. Hepsi ücretsizdir. OSM'de puan ve yorum yoktur.</div>
@@ -415,7 +427,7 @@ function locate(thenNear){
   navigator.geolocation.getCurrentPosition(p=>{setMe(p.coords.latitude,p.coords.longitude);if(thenNear){$('#nearQ').value='';loadNear(me,'Konumunuz')}renderGuide()},
     ()=>{$('#nearStatus').textContent='Konum izni verilmedi. Tarayıcı ayarlarından izin verin ya da bir yer adı yazın.'},{enableHighAccuracy:true,timeout:15000});
 }
-$('#locBtn').onclick=()=>{go('yakin');locate(true)};
+$('#locBtn').onclick=()=>{here.auto=1;go('burada');$('#hereLoc').click()};
 
 /* ---------- rota ---------- */
 function renderPts(){
@@ -638,6 +650,8 @@ function renderGuide(){
 
 /* ---------- olaylar ---------- */
 function go(v){
+  if(v==='rehber'||v==='yakin')v='burada';
+  if(v==='burada'){try{if(!here.c&&!here.auto){here.auto=1;setTimeout(()=>loadKind(me||CITY[city].c,me?'Konumunuz':CITY[city].n),0)}}catch(e){}}
   document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.v===v));
   document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id==='v-'+v));
   if(v==='rehber')renderGuide();
@@ -684,7 +698,7 @@ const TODAY=[
  ['Hayvan figürleri','Taşlarda tilki, yaban domuzu, yılan, turna gibi kuşlar, akrep ve yırtıcı hayvanlar var. Bunlar o dönemin insanlarının inanç dünyasına ve çevrelerindeki doğaya dair ipuçları veriyor.'],
  ['Tapınak mı, yerleşim mi?','Klaus Schmidt burayı avcı-toplayıcıların bir araya geldiği bir kült merkezi olarak yorumladı. Son yıllardaki kazılarda su sarnıcı, yapı kalıntıları ve tahıl işlemeyle ilişkili olabilecek büyük taş tekneler de bulundu. Bu yüzden bugün araştırmacılar burayı törenlerin yapıldığı ama insanların yaşadığı bir yer olarak da değerlendiriyor. Jeofizik çalışmalarda henüz kazılmamış başka büyük yapılar ve yüzlerce dikilitaş tespit edildi; kazıların daha onlarca yıl süreceği öngörülüyor. Kazı ekibi, Göbeklitepe hakkında dolaşan bilimsel dayanağı olmayan iddialara karşı da uyarıyor.'],
  ['Taş Tepeler','Göbeklitepe yalnız değil. Karahantepe başta olmak üzere bölgede aynı döneme ait başka yerleşimler de kazılıyor; bunlar topluca "Taş Tepeler" diye anılıyor.']],
- see:['Karşılama Merkezi\'nde bilet alın (2026 tam bilet 450 TL, Müzekart geçerli) ve tanıtım sergisine 15-20 dk ayırın','Ücretsiz ring servisiyle ören yerine çıkın','Koruma çatısı altında yürüyüş yolunu saat yönünde izleyin','D yapısında 18 ve 31 numaralı merkez taşları ve 43 numaralı Akbaba Taşı\'nı bulun','Yeni yürüyüş güzergâhından Harran Ovası manzarasına bakın','Rüzgâr serttir; mont alın'],
+ see:['Karşılama Merkezi\'nde Müzekart\'ınızı okutun ya da gişeden bilet alın; tanıtım sergisine 15-20 dk ayırın','Ücretsiz ring servisiyle ören yerine çıkın','Koruma çatısı altında yürüyüş yolunu saat yönünde izleyin','D yapısında 18 ve 31 numaralı merkez taşları ve 43 numaralı Akbaba Taşı\'nı bulun','Yeni yürüyüş güzergâhından Harran Ovası manzarasına bakın','Rüzgâr serttir; mont alın'],
  tip:'Gişe kapanıştan yarım saat önce kapanır. Kasımda kış saatleri uygulanabildiği için 16:00\'dan geç kalmayın.'},
 {id:'t2',t:'drive',n:'Göbeklitepe → Balıklıgöl',min:25,km:'~18 km',to:'Balıklıgöl Şanlıurfa',
  say:'Şehir merkezine dönüyoruz. Akşam saatinde Balıklıgöl çevresindeki otoparklar dolabilir; dolu ise Arkeoloji Müzesi / Haleplibahçe otoparkına bırakıp Gölbaşı Parkı üzerinden 10-15 dakika yürüyün.'},
@@ -756,7 +770,37 @@ akale:['Panorama Müzesi giriş ve saatlerini gitmeden kontrol edin'],zincirli:[
 zeugmaa:['Bakanlığa bağlı ören yeri; Müzekart geçerliliğini gişede teyit edin'],yesemek:['Bakanlığa bağlı açık hava müzesi; 08:00–17:00','Müzekart geçerliliğini gişede teyit edin'],rumkale:['Tekne turu ücretli; fiyatı binmeden sorun'],duluk:['Ziyaret durumunu gitmeden kontrol edin']});
 const gkey=id=>String(id).replace(/^g_/,'');
 function gallery(key,fallback){const L=GAL[key]||(fallback?[fallback]:[]);if(!L.length)return'';return '<div class="gal">'+L.map((f,i)=>'<figure><img src="https://commons.wikimedia.org/wiki/Special:FilePath/'+encodeURIComponent(f)+'?width='+(i?700:900)+'" alt="" loading="lazy" onerror="this.parentNode.remove()"><a class="cr" target="_blank" rel="noopener" href="https://commons.wikimedia.org/wiki/File:'+encodeURIComponent(f)+'">Wikimedia Commons</a></figure>').join('')+'</div>'+(L.length>1?'<div class="note" style="margin:0 0 6px">Sağa kaydırarak '+L.length+' fotoğrafı görün</div>':'')}
-function mkBox(key){const m=MK[key];return m?'<div class="tip" style="margin:10px 0"><b>Müzekart ve giriş</b><ul style="margin:4px 0 0;padding-left:18px">'+m.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>':''}
+/* ---------- giriş, ücret ve ödeme notları (Kasım 2026'da derlendi) ---------- */
+const FEETYPE={bak:['🏛 Bakanlık','Müzekart geçer','#0f6b66'],bel:['🏙 Belediye','Müzekart geçmez','#8a4b00'],free:['🆓 Ücretsiz','','#2e7d32'],ozel:['💵 Özel işletme','nakit bulundurun','#6d4c41'],kapali:['🚧 Kapalı olabilir','','#b3261e']};
+const MKT='T.C. vatandaşları: Müzekart ile (300 TL, 1 yıl, her yere 2 giriş). Kartı gişeden ya da e-Devlet / Müzekart uygulamasından alabilirsiniz; önceden alırsanız kuyruk beklemezsiniz.';
+const FEE={
+ gobekli:['bak',['Tek bilet Göbeklitepe ve Karahantepe\'yi birlikte kapsar.',MKT,'Yabancı ziyaretçi: 20 € (2026); ücret gişede TL olarak alınır.','Karşılama merkezinden kazı alanına servis var. Bir kaynağa göre ücretli ve ücret şoföre ödeniyor (Haziran 2026: 32 TL); bozuk nakit bulundurun.','Gişe kapanıştan 30 dakika önce kapanır.']],
+ karahan:['bak',['Göbeklitepe ile aynı bilet (Taş Tepeler). Müzekart geçer.']],
+ muze:['bak',['Tek bilet Şanlıurfa Arkeoloji Müzesi ve Haleplibahçe Mozaik Müzesi\'ni birlikte kapsar.',MKT,'Yabancı ziyaretçi: 10 € (2026).']],
+ mozaik:['bak',['Şanlıurfa Arkeoloji Müzesi biletiyle birlikte. Müzekart geçer.']],
+ harran:['free',['Harran Ören Yeri (Ulu Cami, kale, höyük) Bakanlık tarifesinde ücretsiz.','Kümbet evlerin bir kısmı özel "kültür evi" işletmesi; içeri girmek ya da çay için küçük bir ücret istenebilir. Nakit bulundurun.']],
+ kale:['kapali',['Urfa Kalesi kazı ve restorasyon nedeniyle kapalı; 2026 sonunda ziyarete açılması hedefleniyor.','Açıldığında giriş koşullarını yerinde sorun.']],
+ gol:['free',['Balıklıgöl, Ayn-ı Zeliha ve göl çevresindeki camiler ücretsiz.','Mevlid-i Halil mağarası ücretsiz; kıyafet kuralı var.','Gümrük Hanı\'nda çay ve mırra için nakit işinize yarar.']],
+ halil:['free',['Ücretsiz; namaz vakitlerine dikkat.']],rizvaniye:['free',['Ücretsiz; namaz vakitlerine dikkat.']],mevlid:['free',['Ücretsiz; kıyafet kuralı var (kadınlar için başörtüsü).']],
+ gumruk:['free',['Giriş serbest; çay ve kahve için nakit faydalı.']],eyup:['free',['Ücretsiz ziyaretgâh.']],
+ halfeti:['ozel',['Müze bileti yok; Müzekart kullanılmaz.','Tekne turu özel işletme; kişi başı ücret iskelede ilan edilir.','Tekne turlarında yalnızca nakit kabul edildiği bildiriliyor. Yeterli nakit alın.','Rumkale Ören Yeri ücretsiz; genellikle tekneden görülür.']],
+ zeugmam:['bak',[MKT,'Yabancı ziyaretçi: 12 € (2026; sesli rehber dahil). Nakit ya da kartla ödenebiliyor.','Saatler: 08:30–17:00, gişe 16:30\'da kapanır (muze.gov.tr\'den teyit edin).']],
+ zeugmaa:['bak',['Zeugma Ören Yeri Bakanlığa bağlı; Müzekart geçer.']],
+ akale:['bel',['Kaledeki Savunma ve Kahramanlık Panorama Müzesi Büyükşehir Belediyesi\'ne bağlı: Müzekart geçmez, bilet gişeden alınır.','Gaziantep Kart ile indirimli girilebiliyor.','Ücreti gişede sorun; nakit de bulundurun.','Yakındaki Panorama 25 Aralık, Emine Göğüş Mutfak, Oyun ve Oyuncak ve Hamam müzeleri de belediye müzesi: Müzekart bunlarda da geçmez.']],
+ zincirli:['free',['Kapalı çarşı; giriş serbest.']],bakir:['free',['Giriş serbest.']],
+ tahmis:['ozel',['Tarihî kahvehane; yalnızca içtiğinizi ödersiniz.']],
+ kurtulus:['free',['Ücretsiz; namaz vakitlerine dikkat. Depremden sonraki ziyaret durumunu kontrol edin.']],
+ rumkale:['free',['Rumkale Ören Yeri ücretsiz.','Tekneyle gidilir: tekne ücreti özel işletmeye nakit ödenir.']],
+ yesemek:['free',['Yesemek Ören Yeri Bakanlık tarifesinde ücretsiz.','Açık hava alanı: su ve şapka alın.']],
+ duluk:['free',['Ücret bilgisi bulunamadı; açık alan. Ziyaret durumunu gitmeden kontrol edin.']]};
+function feeBadge(key){const f=FEE[key];if(!f)return'';const t=FEETYPE[f[0]];return '<span class="badge" style="background:'+t[2]+';color:#fff">'+t[0]+'</span>'}
+function mkBox(key){
+  const f=FEE[key];
+  if(!f){const m=MK[key];return m?'<div class="tip" style="margin:10px 0"><b>Müzekart ve giriş</b><ul style="margin:4px 0 0;padding-left:18px">'+m.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>':''}
+  const t=FEETYPE[f[0]];
+  return '<div class="tip" style="margin:10px 0;border-left:4px solid '+t[2]+'"><b>Giriş, ücret ve ödeme</b><div style="margin:4px 0"><span class="badge" style="background:'+t[2]+';color:#fff;margin-left:0">'+t[0]+'</span>'+(t[1]?' <small>'+esc(t[1])+'</small>':'')+'</div><ul style="margin:4px 0 0;padding-left:18px">'+f[1].map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul><div class="note" style="margin-top:4px">Ücretler değişebilir; Kasım 2026 bilgisidir.</div></div>';
+}
+
 function videos(key){const v=VID[key];if(!v)return'';return '<h4 style="margin:12px 0 4px;font-size:16px">Tanıtım videoları</h4><div class="vids">'+v.map(([id,t])=>'<div class="vid" data-vid="'+id+'"><img src="https://i.ytimg.com/vi/'+id+'/hqdefault.jpg" alt="" loading="lazy"><span class="play">▶</span><small>'+esc(t)+'</small></div><a class="note" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v='+id+'">Açılmazsa YouTube\'da izleyin</a>').join('')+'</div>'}
 document.addEventListener('click',e=>{const v=e.target.closest('.vid');if(v&&!v.querySelector('iframe')){v.innerHTML='<iframe src="https://www.youtube-nocookie.com/embed/'+v.dataset.vid+'?autoplay=1&rel=0&playsinline=1" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen title="Video"></iframe>'}});
 function guideBody(s){
@@ -859,8 +903,11 @@ const wcache={};
 async function wikiGeo(c,r,lim){
   const l=WL();
   const j=await fetchJ('https://'+l+'.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord='+c[0]+'%7C'+c[1]+'&gsradius='+Math.min(Math.max(r,100),10000)+'&gslimit='+(lim||80)+'&format=json&origin=*',{},1,15000);
+  const core=s=>norm(s).replace(/sanliurfa|urfa|gaziantep|antep|camii|cami/g,'');
   const names=new Set(G.map(p=>norm(p.n)));
-  return (j.query&&j.query.geosearch||[]).filter(g=>!NONHIST.test(g.title.toLocaleLowerCase('tr'))&&!names.has(norm(g.title)))
+  const dupe=g=>G.some(p=>p.lat!=null&&(core(p.n)===core(g.title)||core(g.title).includes(core(p.n))&&core(p.n).length>5)&&hav([p.lat,p.lon],[g.lat,g.lon])<1500);
+  const DIST=/^(eyyübiye|haliliye|karaköprü|şanlıurfa|şahinbey|şehitkamil|gaziantep|nizip|halfeti|birecik|siverek|viranşehir|suruç|akçakale|harran|islahiye|oğuzeli|yavuzeli|araban|selçuk|kuşadası|merkez)$/i;
+  return (j.query&&j.query.geosearch||[]).filter(g=>!NONHIST.test(g.title.toLocaleLowerCase('tr'))&&!DIST.test(g.title)&&!dupe(g)&&!names.has(norm(g.title)))
     .map(g=>({id:'w'+g.pageid,n:g.title,lat:g.lat,lon:g.lon,c:HISTKW.test(g.title)?'hist':'view',sub:'Vikipedi',w:g.title,wl:l,hk:HISTKW.test(g.title),tags:{wikipedia:l+':'+g.title},d:g.dist}));
 }
 async function wikiInfo(l,title){
@@ -884,7 +931,7 @@ function hereBtns(p){const g='https://www.google.com/maps/dir/?api=1&destination
   return '<div class="btns"><button class="btn sm red" data-agplay="'+esc(p.id)+'">🎧 Sesli anlatım</button><a class="btn sm" target="_blank" rel="noopener" href="'+g+'">Yol tarifi</a><button class="btn sm alt" data-herezoom="'+esc(p.id)+'">Haritada</button>'+ytLink(p.n)+'</div>'}
 async function hereShow(p){
   here.sel=p;const el=$('#hereCard');const dist=here.c?hav(here.c,[p.lat,p.lon]):null;
-  const meta=esc(p.sub||'')+(dist!=null?' · '+fKm(dist)+(dist<150?' · buradasınız':''):'');
+  const meta=esc(p.sub||'')+(dist!=null?' · '+fKm(dist)+(dist<150&&me&&hav(me,here.c)<60?' · buradasınız':''):'');
   if(p.cur){
     const s=!p.story&&stopPool().find(x=>gkey(x.id)===p.id&&x.sec);
     el.innerHTML='<div class="hero">'+gallery(gkey(p.id),p.img)+'<div class="in"><h2>'+esc(p.n)+'</h2><div class="meta">'+meta+'</div>'+hereBtns(p)+
@@ -904,7 +951,7 @@ async function hereShow(p){
 }
 function renderHereList(){
   $('#hereListH').hidden=!here.items.length;
-  $('#hereList').innerHTML=here.items.map(p=>'<button class="it" data-hereid="'+esc(p.id)+'" aria-expanded="'+(here.sel&&here.sel.id===p.id)+'"><span class="d" style="background:'+CAT[p.c].c+'"></span><span><b>'+esc(p.n)+(p.cur?'<span class="badge">Rehber</span>':'')+'</b><small>'+esc(p.sub||'')+'</small></span><span class="km">'+fKm(p.d)+(here.mode==='food'?'<br><small>🚶'+walkMin(p.d)+' dk</small>':'')+'</span></button>').join('');
+  $('#hereList').innerHTML=here.items.map(p=>'<button class="it" data-hereid="'+esc(p.id)+'" aria-expanded="'+(here.sel&&here.sel.id===p.id)+'"><span class="d" style="background:'+CAT[p.c].c+'"></span><span><b>'+esc(p.n)+(p.cur?(feeBadge(gkey(p.id))||'<span class="badge">Rehber</span>'):'')+'</b><small>'+esc(p.sub||'')+'</small></span><span class="km">'+fKm(p.d)+(here.mode==='food'?'<br><small>🚶'+walkMin(p.d)+' dk</small>':'')+'</span></button>').join('');
 }
 async function herePhotos(c){
   try{const j=await fetchJ('https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=geosearch&ggsnamespace=6&ggscoord='+c[0]+'%7C'+c[1]+'&ggsradius=800&ggslimit=30&prop=imageinfo&iiprop=url|user&iiurlwidth=360',{},1,15000);
@@ -914,10 +961,10 @@ async function herePhotos(c){
   }catch(e){$('#herePhH').hidden=true}
 }
 async function hereLoad(c,label){
-  here.c=c;here.mode='hist';walkLayer.clearLayers();$('#hereListH').textContent='Etraftaki tarihî yerler';$('#hereStatus').textContent=(label||'Konumunuz')+' çevresindeki tarihî yerler aranıyor…';
-  const cur=G.filter(p=>p.lat!=null).map(p=>({...p,d:hav(c,[p.lat,p.lon])})).filter(p=>p.d<=12000);
+  here.c=c;here.mode='hist';here.kind='hist';here.auto=1;kindUI();walkLayer.clearLayers();$('#hereListH').textContent='Etraftaki tarihî yerler';$('#hereStatus').textContent=(label||'Konumunuz')+' çevresindeki tarihî yerler aranıyor…';
+  const cur=G.filter(p=>p.lat!=null).map(p=>({...p,d:hav(c,[p.lat,p.lon])})).filter(p=>p.d<=12000||(p.city===city&&hav(c,CITY[city].c)<30000));
   let w=[];try{w=await wikiGeo(c,10000)}catch(e){}
-  here.items=[...cur,...w].sort((a,b)=>(a.d-(a.cur?400:a.hk?150:0))-(b.d-(b.cur?400:b.hk?150:0))).slice(0,40);
+  here.items=[...cur,...w].sort((a,b)=>(a.d-(a.cur?400:a.hk?150:0))-(b.d-(b.cur?400:b.hk?150:0))).slice(0,45);
   here.items.sort((a,b)=>a.d-b.d);
   const first=[...here.items].sort((a,b)=>(a.d-(a.cur?400:a.hk?150:0))-(b.d-(b.cur?400:b.hk?150:0)))[0];
   $('#hereStatus').textContent=here.items.length?(label||'Konumunuz')+': '+here.items.length+' yer bulundu. Listeden başka bir yere dokunarak tanıtımını açın.':'Yakında kayıtlı tarihî yer bulunamadı.';
@@ -927,10 +974,10 @@ async function hereLoad(c,label){
 }
 $('#hereLoc').onclick=()=>{if(!navigator.geolocation){$('#hereStatus').textContent='Bu tarayıcı konum vermiyor; bir yer adı yazın.';return}
   $('#hereStatus').textContent='Konumunuz alınıyor…';
-  navigator.geolocation.getCurrentPosition(p=>{setMe(p.coords.latitude,p.coords.longitude);hereLoad(me,'Konumunuz')},()=>{$('#hereStatus').textContent='Konum izni verilmedi. Tarayıcı ayarlarından izin verin ya da bir yer adı yazın.'},{enableHighAccuracy:true,timeout:15000})};
+  navigator.geolocation.getCurrentPosition(p=>{setMe(p.coords.latitude,p.coords.longitude);here.lbl='Konumunuz';loadKind(me,'Konumunuz')},()=>{$('#hereStatus').textContent='Konum izni verilmedi. Tarayıcı ayarlarından izin verin ya da bir yer adı yazın.'},{enableHighAccuracy:true,timeout:15000})};
 $('#hereForm').onsubmit=async e=>{e.preventDefault();const q=$('#hereQ').value.trim();if(!q){$('#hereLoc').click();return}
-  const h=aliasHit(q);if(h){hereLoad([h.lat,h.lon],h.n);return}
-  $('#hereStatus').textContent='"'+q+'" aranıyor…';try{const g=await geocode(q);hereLoad([g.lat,g.lon],q)}catch(er){try{const l=WL();const j=await fetchJ('https://'+l+'.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrlimit=5&gsrsearch='+encodeURIComponent(q)+'&prop=coordinates',{},1,15000);const pg=Object.values(j.query&&j.query.pages||{}).sort((a,b)=>a.index-b.index).find(x=>x.coordinates);if(!pg)throw 0;hereLoad([pg.coordinates[0].lat,pg.coordinates[0].lon],pg.title)}catch(e2){$('#hereStatus').textContent='"'+q+'" bulunamadı. Başka bir yazım deneyin.'}}};
+  const h=aliasHit(q);if(h){here.lbl=h.n;loadKind([h.lat,h.lon],h.n);return}
+  $('#hereStatus').textContent='"'+q+'" aranıyor…';try{const g=await geocode(q);here.lbl=q;loadKind([g.lat,g.lon],q)}catch(er){try{const l=WL();const j=await fetchJ('https://'+l+'.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrlimit=5&gsrsearch='+encodeURIComponent(q)+'&prop=coordinates',{},1,15000);const pg=Object.values(j.query&&j.query.pages||{}).sort((a,b)=>a.index-b.index).find(x=>x.coordinates);if(!pg)throw 0;here.lbl=pg.title;loadKind([pg.coordinates[0].lat,pg.coordinates[0].lon],pg.title)}catch(e2){$('#hereStatus').textContent='"'+q+'" bulunamadı. Başka bir yazım deneyin.'}}};
 $('#v-burada').addEventListener('click',e=>{
   const it=e.target.closest('[data-hereid]');if(it){const p=here.items.find(x=>x.id===it.dataset.hereid);if(p&&here.mode==='food'){foodShow(p);return}if(p){hereShow(p);$('#hereCard').scrollIntoView({behavior:'smooth',block:'start'})}return}
   const z=e.target.closest('[data-herezoom]');if(z){const p=findPlace(z.dataset.herezoom);if(p){if($('#map').classList.contains('small'))$('#mapToggle').click();map.setView([p.lat,p.lon],17);window.scrollTo({top:0,behavior:'smooth'})}return}
@@ -949,35 +996,40 @@ const FOODPICK=[
  {id:'f_imam',n:'İmam Çağdaş',lat:37.0635,lon:37.38521,city:'antep',note:'Kalenin dibinde, Uzun Çarşı\'da. Kebap ve baklavasıyla Gaziantep\'in en bilinen adreslerinden.'},
  {id:'f_metanet',n:'Metanet Lokantası',lat:37.06088,lon:37.38844,city:'antep',note:'Sabah beyranı ve yöresel tencere yemekleriyle bilinir; Tahmis Kahvesi\'nin yakınında.'},
  {id:'f_halil',n:'Kebapçı Halil Usta',lat:37.07747,lon:37.38549,city:'antep',note:'Gaziantep\'in tanınmış kebapçılarından; Zeugma Mozaik Müzesi\'ne yaklaşık 200 m.'},
- {id:'f_kocak',n:'Koçak Baklava',lat:37.0699,lon:37.36657,city:'antep',note:'Baklava ve şöbiyet için.'},
- {id:'f_orkide',n:'Orkide Pastanesi',lat:37.06779,lon:37.36871,city:'antep',note:'Baklava ve tatlı molası için.'}];
+ {id:'f_kocak',k:'cafe',n:'Koçak Baklava',lat:37.0699,lon:37.36657,city:'antep',note:'Baklava ve şöbiyet için.'},
+ {id:'f_orkide',k:'cafe',n:'Orkide Pastanesi',lat:37.06779,lon:37.36871,city:'antep',note:'Baklava ve tatlı molası için.'}];
 // Haritada konumu olmayan önerilenler (Balıklıgöl çevresi) — Google Haritalar'da ada göre açılır
 const FOODNAMES=[['Çardaklı Köşk','Göl kenarında, manzaralı'],['Şehr-i Urfa','Haleplibahçe Cd.; akşam sıra gecesi'],['Sena Ocakbaşı','Küçük ocakbaşı; patlıcan kebabı'],['Paflar Ciğer','Çarşı içinde; patlıcanlı ve sebzeli kebap'],['Birinci Ciğer & Kebap','Sade sokak lokantası; ciğer'],['Hanehan Restaurant','Tarihî avluda, şık'],['Derdo Usta Ocakbaşı','Urfa kebabı ve ciğer']];
 const walkMin=d=>Math.max(1,Math.round(d*1.3/75));
 const walkLayer=L.layerGroup().addTo(map);
-async function foodLoad(c,label){
+const KQ={food:['restaurant','kebap','ciğer','lokanta','ocakbaşı'],cafe:['cafe','pastane','kahve','çay bahçesi','baklava'],fuel:['fuel','akaryakıt','opet','shell','petrol ofisi']};
+const KN={food:'yemek yeri',cafe:'kafe / tatlı yeri',fuel:'akaryakıt istasyonu'};
+async function foodLoad(c,label,kind){
+  kind=kind||'food';here.kind=kind;kindUI();here.auto=1;
   go('burada');here.c=c;here.mode='food';walkLayer.clearLayers();
-  $('#hereStatus').textContent=(label||'Konumunuz')+' çevresindeki yemek yerleri aranıyor… (birkaç saniye)';
+  $('#hereStatus').textContent=(label||'Konumunuz')+' çevresindeki '+KN[kind]+'leri aranıyor… (birkaç saniye)';
   $('#hereCard').innerHTML='';$('#herePhH').hidden=true;$('#herePhotos').innerHTML='';
-  const dl=0.012,dn=0.015,vb=(c[1]-dn)+','+(c[0]+dl)+','+(c[1]+dn)+','+(c[0]-dl);
+  const dl=kind==='fuel'?0.04:0.012,dn=kind==='fuel'?0.05:0.015,vb=(c[1]-dn)+','+(c[0]+dl)+','+(c[1]+dn)+','+(c[0]-dl);
   const seen=new Set(),res=[];
-  for(const q of ['restaurant','kebap','ciğer','lokanta','ocakbaşı','pastane','cafe']){
+  for(const q of KQ[kind]){
     try{const r=await fetchJ('https://nominatim.openstreetmap.org/search?format=json&limit=40&bounded=1&viewbox='+vb+'&q='+encodeURIComponent(q),{},1,12000);
       r.forEach(x=>{if(!x.name||seen.has(x.osm_type+x.osm_id))return;seen.add(x.osm_type+x.osm_id);
         const isCafe=!/ciğer|ciger|kebap|kebab|lokanta|restoran|restaurant|ocakbaşı|ocakbasi|döner|lahmacun|sofra/i.test(x.name)&&(/cafe|bakery|confectionery|ice_cream/.test(x.type)||/pastane|kafe|cafe|kahve|baklava|çay/i.test(x.name));
-        res.push({id:'o'+x.osm_id,n:x.name,lat:+x.lat,lon:+x.lon,c:isCafe?'cafe':'food',sub:isCafe?'Kafe / tatlı':'Lokanta / kebap',tags:{}})});
-      if(here.mode==='food'){$('#hereStatus').textContent='Aranıyor… '+res.length+' yer bulundu';here.items=res.map(p=>({...p,d:hav(c,[p.lat,p.lon])})).sort((a,b)=>a.d-b.d).slice(0,40);$('#hereListH').textContent='Yakındaki yemek yerleri';$('#hereListH').hidden=!here.items.length;renderHereList();drawPois()}
+        const isFuel=/fuel/.test(x.type)||/akaryak|petrol|opet|shell|\bbp\b|total|aytemiz|lukoil|türkiye petrolleri/i.test(x.name);
+        const ck=isFuel?'fuel':isCafe?'cafe':'food';if(ck!==kind)return;
+        res.push({id:'o'+x.osm_id,n:x.name,lat:+x.lat,lon:+x.lon,c:ck,sub:ck==='fuel'?'Akaryakıt':ck==='cafe'?'Kafe / tatlı':'Lokanta / kebap',tags:{}})});
+      if(here.mode==='food'){$('#hereStatus').textContent='Aranıyor… '+res.length+' yer bulundu';here.items=res.map(p=>({...p,d:hav(c,[p.lat,p.lon])})).sort((a,b)=>a.d-b.d).slice(0,40);$('#hereListH').textContent='Yakındaki '+KN[kind]+'leri';$('#hereListH').hidden=!here.items.length;renderHereList();drawPois()}
     }catch(e){}
     await new Promise(r=>setTimeout(r,1050));
     if(here.mode!=='food')return;
   }
-  const picks=FOODPICK.filter(p=>hav(c,[p.lat,p.lon])<4000).map(p=>({...p,c:'food',sub:'⭐ Önerilen',pick:true,tags:{}}));
+  const picks=FOODPICK.filter(p=>(p.k||'food')===kind&&hav(c,[p.lat,p.lon])<4000).map(p=>({...p,c:kind,sub:'⭐ Önerilen',pick:true,tags:{}}));
   const pn=new Set(picks.map(p=>norm(p.n)));
   here.items=[...picks,...res.filter(p=>!pn.has(norm(p.n)))].map(p=>({...p,d:hav(c,[p.lat,p.lon])})).sort((a,b)=>(a.d-(a.pick?300:0))-(b.d-(b.pick?300:0))).slice(0,40);
   here.items.sort((a,b)=>a.d-b.d);
-  const nearUrfa=hav(c,[37.1477,38.7844])<3000;
-  $('#hereStatus').textContent=here.items.length?(label||'Konumunuz')+': '+here.items.length+' yemek yeri. Birine dokunun: yürüyüş rotası haritada çizilir.':'Bu çevrede haritada kayıtlı yemek yeri bulunamadı.';
-  here.sel=null;renderHereList();$('#hereListH').textContent='Yakındaki yemek yerleri';$('#hereListH').hidden=!here.items.length;
+  const nearUrfa=kind==='food'&&hav(c,[37.1477,38.7844])<3000;
+  $('#hereStatus').textContent=here.items.length?(label||'Konumunuz')+': '+here.items.length+' '+KN[kind]+'. Birine dokunun: '+(kind==='fuel'?'rota':'yürüyüş rotası')+' haritada çizilir.':'Bu çevrede haritada kayıtlı '+KN[kind]+' bulunamadı.';
+  here.sel=null;renderHereList();$('#hereListH').textContent='Yakındaki '+KN[kind]+'leri';$('#hereListH').hidden=!here.items.length;
   $('#hereCard').innerHTML=nearUrfa?'<div class="tip"><b>Önerdiklerim (Balıklıgöl çevresi)</b>Bu yerler henüz OpenStreetMap haritasında yok; dokununca Google Haritalar\'da açılır.<div class="btns" style="margin-top:6px">'+FOODNAMES.map(([n,d])=>'<a class="btn sm alt" target="_blank" rel="noopener" title="'+esc(d)+'" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(n+' Şanlıurfa')+'">'+esc(n)+'</a>').join('')+'</div></div>':'';
   drawPois();
   const pts2=here.items.slice(0,15).map(p=>[p.lat,p.lon]);if(pts2.length)map.fitBounds([c,...pts2],{padding:[30,30],maxZoom:17});
@@ -991,7 +1043,7 @@ async function foodShow(p){
    '<div class="btns"><button class="btn sm red" data-froute="foot">🚶 Yürüyüş rotası</button><button class="btn sm" data-froute="car">🚗 Araç rotası</button><a class="btn sm alt" target="_blank" rel="noopener" href="'+g+'">Google Haritalar</a></div><div class="note" id="frInfo"></div><div class="src">Konum: OpenStreetMap. Açılış saatlerini mekândan teyit edin.</div></div>';
   const old=$('#foodCard');if(old)old.replaceWith(el);else $('#hereCard').prepend(el);
   if($('#map').classList.contains('small'))$('#mapToggle').click();window.scrollTo({top:0,behavior:'smooth'});
-  foodRoute('foot');
+  foodRoute(p.c==='fuel'||p.d>2500?'car':'foot');
 }
 async function foodRoute(mode){
   const p=here.sel;if(!p||!here.c)return;const info=$('#frInfo');if(info)info.textContent='Rota hesaplanıyor…';
@@ -1003,12 +1055,10 @@ async function foodRoute(mode){
     if(info)info.textContent=(mode==='foot'?'🚶 Yürüyerek ':'🚗 Araçla ')+fKm(r.distance)+' · '+fMin(r.duration)+' (haritada çizildi)';
   }catch(e){if(info)info.textContent='Rota şu an hesaplanamadı; Google Haritalar düğmesini kullanın.'}
 }
-$('#foodBtn').onclick=()=>{
-  if(here.c&&here.mode!=='food'){foodLoad(here.c,'Seçili yer');return}
-  if(!navigator.geolocation){foodLoad(me||CITY[city].c,me?'Konumunuz':CITY[city].n);return}
-  $('#hereStatus').textContent='Konumunuz alınıyor…';
-  navigator.geolocation.getCurrentPosition(p=>{setMe(p.coords.latitude,p.coords.longitude);foodLoad(me,'Konumunuz')},()=>foodLoad(here.c||CITY[city].c,here.c?'Seçili yer':CITY[city].n),{enableHighAccuracy:true,timeout:12000});
-};
+function kindUI(){document.querySelectorAll('#kindSeg [data-k]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.k===(here.kind||'hist')))}
+function loadKind(c,label){return (here.kind&&here.kind!=='hist')?foodLoad(c,label,here.kind):hereLoad(c,label)}
+$('#kindSeg').onclick=e=>{const b=e.target.closest('[data-k]');if(!b)return;here.kind=b.dataset.k;kindUI();
+  const c=here.c||me||CITY[city].c;loadKind(c,here.lbl||(here.c?'Seçili yer':me?'Konumunuz':CITY[city].n))};
 document.addEventListener('click',e=>{const b=e.target.closest('[data-froute]');if(b)foodRoute(b.dataset.froute)});
 
 /* ---------- çevrimdışı ---------- */
@@ -1027,10 +1077,10 @@ $('#offBtn').onclick=async()=>{
 
 /* ---------- i18n altyapısı ---------- */
 const I18N={
- tr:{app:'Gezi Rotam',tagline:'Tarihî yerler rehberi',ag:'🎧 Sesli',loc:'📍',t_today:'Bugün',t_here:'Burada',t_near:'Yakınımda',t_route:'Rota',t_guide:'Rehber',t_info:'Bilgi',
-  ag_title:'Yaklaşınca sesli anlatım',ag_help:'Üstteki 🎧 Sesli düğmesine bir kez basın. Telefon konumunuzu izler; bu listedeki bir yere yaklaştığınızda anlatım kendiliğinden başlar. Ekran açık kalır; telefonu cebe koymadan önce sesi açın.',
+ tr:{app:'Gezi Rotam',tagline:'Tarihî yerler rehberi',ag:'🎧 Sesli',loc:'📍',t_today:'Bugün',t_here:'Keşfet',t_near:'Yakınımda',t_route:'Rota',t_guide:'Rehber',t_info:'Bilgi',
+  ag_title:'Yaklaşınca sesli anlatım',ag_help:'Üstteki 🎧 Sesli düğmesine bir kez basın. Telefon konumunuzu izler; rehberdeki ya da Keşfet\'teki tarihî bir yere yaklaştığınızda anlatım kendiliğinden başlar. Ekran açık kalır; telefonu cebe koymadan önce sesi açın.',
   ag_pause:'Durdur',ag_resume:'Devam',ag_skip:'Atla',ag_off:'Kapat',ag_on:'Sesli rehber açık',ag_wait:'Konum bekleniyor…',ag_next:'En yakın',ag_listen:'Dinleniyor',lang:'Dil / Language',lang_note:'İçerik şimdilik Türkçe; İngilizce arayüz hazırlanıyor.',ag_when:'Ne zaman anlatsın?',m_auto:'Yaklaşınca',m_arrive:'Mekâna varınca',m_ask:'Önce sor',m_off:'Kendiliğinden başlamasın',ag_test:'Sesi dene',ag_rate:'Konuşma hızı',ag_askq:'Tanıtımı dinlemek ister misiniz?',ag_near:'Yakınınızda'},
- en:{app:'Gezi Rotam',tagline:'Historic sites guide',ag:'🎧 Audio',loc:'📍',t_today:'Today',t_here:'Here',t_near:'Nearby',t_route:'Route',t_guide:'Guide',t_info:'Info',
+ en:{app:'Gezi Rotam',tagline:'Historic sites guide',ag:'🎧 Audio',loc:'📍',t_today:'Today',t_here:'Explore',t_near:'Nearby',t_route:'Route',t_guide:'Guide',t_info:'Info',
   ag_title:'Narration as you approach',ag_help:'Tap 🎧 Audio guide once. Your phone tracks your location and narration starts by itself when you get close to a place in this list. The screen stays on; turn the volume up first.',
   ag_pause:'Pause',ag_resume:'Resume',ag_skip:'Skip',ag_off:'Close',ag_on:'Audio guide on',ag_wait:'Waiting for location…',ag_next:'Nearest',ag_listen:'Playing',lang:'Dil / Language',lang_note:'Content is Turkish for now; the English version is in preparation.',ag_when:'When should it narrate?',m_auto:'On approach',m_arrive:'On arrival',m_ask:'Ask first',m_off:'Manual only',ag_test:'Test voice',ag_rate:'Speech rate',ag_askq:'Play the introduction?',ag_near:'Nearby'}};
 let lang=store.get('lang','tr');if(!I18N[lang])lang='tr';
@@ -1042,7 +1092,7 @@ $('#langSeg').onclick=e=>{const b=e.target.closest('[data-lang]');if(!b)return;l
 /* ---------- şehir seçici ---------- */
 $('#citySel').innerHTML=Object.entries(CITY).map(([k,c])=>'<option value="'+k+'">'+esc(c.n)+'</option>').join('');
 $('#citySel').value=city;
-function setCity(k,show){city=k;store.set('city',k);$('#citySel').value=k;renderGuide();if(show){go('rehber');const ps=G.filter(p=>p.city===k&&p.lat!=null).map(p=>[p.lat,p.lon]);if(ps.length)map.fitBounds(ps,{padding:[30,30],maxZoom:13})}}
+function setCity(k,show){city=k;store.set('city',k);$('#citySel').value=k;renderGuide();if(show){here.auto=1;go('burada');loadKind(CITY[k].c,CITY[k].n);const ps=G.filter(p=>p.city===k&&p.lat!=null).map(p=>[p.lat,p.lon]);if(ps.length)map.fitBounds(ps,{padding:[30,30],maxZoom:13})}}
 $('#citySel').onchange=()=>setCity($('#citySel').value,true);
 
 /* ---------- YAKLAŞINCA SESLİ ANLATIM ---------- */
@@ -1131,6 +1181,7 @@ $('#agPause').onclick=()=>{if(!AG.cur)return;if(AG.paused){speechSynthesis.resum
 document.addEventListener('click',e=>{const b=e.target.closest('[data-agplay]');if(b)agPlay(b.dataset.agplay)});
 window.gezi={agCheck,agPlay,AG,setCity};   // test için
 applyI18n();
+{const h=$('#setHost');if(h){h.append($('#agTip'));const o=$('#offBtn');if(o){o.textContent='⬇ Seçili şehri çevrimdışı kullanım için indir';h.append(o.parentNode)}}}
 
 /* ---------- başlat ---------- */
 chips();
