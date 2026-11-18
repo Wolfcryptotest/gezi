@@ -663,7 +663,7 @@ function renderToday(){
   const left=pool.filter(p=>!plan.includes(p.id));
   let ch='';
   if(!tDone){
-    ch='<div class="sec" style="font-size:16px;color:var(--ink)">'+(plan.length?esc(last.n)+'\'den sonra nereye gitmek istersiniz?':'Gaziantep\'ten ilk durak nereye olsun?')+'</div><div class="list">'+
+    ch='<div class="sec" style="font-size:16px;color:var(--ink)">'+(plan.length?esc(last.n)+' sonrası: buradan nereye gitmek istersiniz?':'Gaziantep\'ten ilk durak nereye olsun?')+'</div><div class="list">'+
       left.map(p=>{const L=leg(last,p);return '<button class="it" data-pick="'+p.id+'" style="grid-template-columns:64px minmax(0,1fr) auto">'+(p.img?'<img src="'+img(p.img,160)+'" alt="" loading="lazy" style="width:64px;height:48px;object-fit:cover;border-radius:8px" onerror="this.style.visibility=\'hidden\'">':'<span></span>')+'<span><b>'+esc(p.n)+'</b><small>'+esc(p.sub||'')+'</small></span><span class="km">'+(L.est?'~':'')+fKm(L.m)+'<small>'+(L.est?'~':'')+fMin(L.s)+'</small></span></button>'}).join('')+
       (plan.length?'<button class="it" data-pick="home" style="grid-template-columns:64px minmax(0,1fr) auto"><span></span><span><b>Gaziantep\'e dön</b><small>Günü bitir</small></span><span class="km">'+fKm(leg(last,START).m)+'<small>'+fMin(leg(last,START).s)+'</small></span></button>':'')+'</div>';
   }else ch='<div class="row2"><button class="btn alt" data-pick="undo">Dönüşü geri al, durak ekle</button></div>';
