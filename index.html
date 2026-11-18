@@ -222,7 +222,7 @@ header select option{color:#1f2a29}
       <li>18 yaş altı ve 65 yaş üstü T.C. vatandaşları Bakanlık müzelerine ücretsiz girer (kimlik gösterin).</li>
       <li><b>🏙 Belediye müzeleri</b> (Gaziantep Kalesi Panorama, Panorama 25 Aralık, Emine Göğüş Mutfak, Oyun ve Oyuncak, Hamam müzeleri): Müzekart geçmez. Bilet gişeden alınır; Gaziantep Kart ile indirim var.</li>
       <li><b>🆓 Ücretsiz:</b> Balıklıgöl ve camileri, Mevlid-i Halil, Harran Ören Yeri, Rumkale ve Yesemek ören yerleri, Zincirli Bedesten, Bakırcılar Çarşısı.</li>
-      <li><b>💵 Nakit gereken yerler:</b> Halfeti tekne turu (yalnızca nakit bildiriliyor), Göbeklitepe servis aracı (şoföre ödenir), Harran kültür evleri, otoparklar, çay ve mırra.</li>
+      <li><b>💵 Nakit gereken yerler:</b> Halfeti tekne turu (yalnızca nakit bildiriliyor), Harran kültür evleri, otoparklar, çay ve mırra.</li>
       <li><b>🚧 Kapalı:</b> Urfa Kalesi kazı ve restorasyon nedeniyle kapalı (2026 sonu hedef).</li>
     </ul><span class="note">Bilgiler Kasım 2026'da derlendi; ücretler değişebilir.</span></div>
     <h3 class="sec2">Yol ve giriş bilgileri</h3>
@@ -230,7 +230,7 @@ header select option{color:#1f2a29}
       <table class="t"><tr><td>Otomobil, tek yön</td><td><b>101,65 TL</b></td></tr><tr><td>Otomobil, gidiş-dönüş</td><td><b>203,30 TL</b></td></tr><tr><td>Hafif ticari, tek yön</td><td>120,47 TL</td></tr><tr><td>Motosiklet, tek yön</td><td>45,18 TL</td></tr></table>
       <span class="note">2026 KGM tarifesi, en uzak mesafe, KDV dahil. Bakiye yetmezse ihlalli geçiş kaydı oluşur; 15 gün içinde ödenirse yalnızca geçiş ücreti alınır.</span></div>
     <div class="tip"><b>Müzekart</b>Yıllık 300 TL; 350'den fazla müze ve ören yerine, her birine yılda 2 giriş hakkı verir. e-Devlet ya da Türkiye Müzeleri uygulamasından alınır, gişede kimlikle girilir. Şanlıurfa'da Göbeklitepe, Harran, Şanlıurfa Kalesi, Şanlıurfa Müzesi ve Haleplibahçe'de geçerli. Balıklıgöl çevresi ücretsizdir; Halfeti tekne turu Müzekart kapsamında değildir. 1 Aralık 2026'dan itibaren yeni Müzekart tarifesi uygulanacak.</div>
-    <div class="tip"><b>Göbeklitepe</b>Bakanlık ören yeri: Müzekart ile girilir; tek bilet Karahantepe'yi de kapsar. Arabayı ören yerinin ~2–2,5 km aşağısındaki Karşılama Merkezi otoparkına bırakın; kazı alanına servis var (ücretli olabilir, bozuk nakit bulundurun). Kış saatlerini muze.gov.tr'den kontrol edin.</div>
+    <div class="tip"><b>Göbeklitepe</b>Bakanlık ören yeri: Müzekart ile girilir; tek bilet Karahantepe'yi de kapsar. Arabayı ören yerinin ~2–2,5 km aşağısındaki Karşılama Merkezi otoparkına bırakın; kazı alanına ücretsiz servis var (Kasım 2026). Kış saatlerini muze.gov.tr'den kontrol edin.</div>
     <div class="tip"><b>Şanlıurfa merkez otoparkı</b>İlk tercih Arkeoloji Müzesi / Haleplibahçe otoparkı; gerisi yürüyerek. Balıklıgöl çevresindeki otoparklar hafta sonu çabuk dolar.</div>
     <div class="tip"><b>Gezi modu nasıl çalışır?</b>Rotayı oluşturup Geziyi başlat'a basın. Telefon konumunuzu izler; önünüzdeki 4 km içinde tarihî bir yer ya da müze varsa "Uğramak ister misiniz?" diye sorar ve sıradaki akaryakıt istasyonunu gösterir. Ekran açık kalmalıdır.</div>
     <div class="tip"><b>Veriler nereden geliyor?</b>Harita, yerler ve yollar OpenStreetMap'ten; rota ve yürüyüş/araç süreleri OSRM'den; tarihî yer özetleri ve fotoğraflar Vikipedi ve Wikimedia Commons'tan; canlı trafik Yandex'ten. Hepsi ücretsizdir. OSM'de puan ve yorum yoktur.</div>
@@ -774,7 +774,7 @@ function gallery(key,fallback){const L=GAL[key]||(fallback?[fallback]:[]);if(!L.
 const FEETYPE={bak:['🏛 Bakanlık','Müzekart geçer','#0f6b66'],bel:['🏙 Belediye','Müzekart geçmez','#8a4b00'],free:['🆓 Ücretsiz','','#2e7d32'],ozel:['💵 Özel işletme','nakit bulundurun','#6d4c41'],kapali:['🚧 Kapalı olabilir','','#b3261e']};
 const MKT='T.C. vatandaşları: Müzekart ile (300 TL, 1 yıl, her yere 2 giriş). Kartı gişeden ya da e-Devlet / Müzekart uygulamasından alabilirsiniz; önceden alırsanız kuyruk beklemezsiniz.';
 const FEE={
- gobekli:['bak',['Tek bilet Göbeklitepe ve Karahantepe\'yi birlikte kapsar.',MKT,'Yabancı ziyaretçi: 20 € (2026); ücret gişede TL olarak alınır.','Karşılama merkezinden kazı alanına servis var. Bir kaynağa göre ücretli ve ücret şoföre ödeniyor (Haziran 2026: 32 TL); bozuk nakit bulundurun.','Gişe kapanıştan 30 dakika önce kapanır.']],
+ gobekli:['bak',['Tek bilet Göbeklitepe ve Karahantepe\'yi birlikte kapsar.',MKT,'Yabancı ziyaretçi: 20 € (2026); ücret gişede TL olarak alınır.','Karşılama merkezinden kazı alanına servis var; Kasım 2026\'da servis için ücret alınmadı (gezgin bildirimi).','Müzekart girişte geçerli (Kasım 2026, gezgin bildirimi).','Gişe kapanıştan 30 dakika önce kapanır.']],
  karahan:['bak',['Göbeklitepe ile aynı bilet (Taş Tepeler). Müzekart geçer.']],
  muze:['bak',['Tek bilet Şanlıurfa Arkeoloji Müzesi ve Haleplibahçe Mozaik Müzesi\'ni birlikte kapsar.',MKT,'Yabancı ziyaretçi: 10 € (2026).']],
  mozaik:['bak',['Şanlıurfa Arkeoloji Müzesi biletiyle birlikte. Müzekart geçer.']],
