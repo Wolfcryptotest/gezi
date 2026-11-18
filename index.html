@@ -346,6 +346,7 @@ async function detail(p,list){
   const y='https://yandex.com.tr/maps/?pt='+p.lon+','+p.lat+'&z=16&l=map';
   el.innerHTML=
     '<div id="wiki"></div>'+
+    (p.story?storyHtml(p)+'<h4 style="margin:12px 0 4px;font-size:16px">Kısa bilgiler</h4>':'')+
     (p.facts?'<ul>'+p.facts.map(f=>'<li>'+esc(f)+'</li>').join('')+'</ul>':'')+
     (p.visit?'<div class="tip" style="margin:6px 0"><b>Ziyaret</b>'+esc(p.visit)+'</div>':'')+
     (kv.length?'<div class="kv">'+kv.map(([a,b])=>'<span>'+esc(a)+'</span><span>'+esc(b)+'</span>').join('')+'</div>':'')+
@@ -733,7 +734,7 @@ const img=(f,w)=>'https://commons.wikimedia.org/wiki/Special:FilePath/'+encodeUR
 const GAL={gobekli:['Archäologiepark_Göbekli_Tepe.jpg','Göbeklitepe_Building_D_5351.jpg','Göbekli_Tepe_Pilar_Arm_and_Fox.JPG','Göbeklitepe_Building_D_5323.jpg','Göbekli2012-15.jpg','Urfa_museum_Gobeklitepe_Temple_D_replica_sept_2019_4839.jpg'],
 halfeti:['Old_Halfeti_05.jpg','Halfeti_on_the_Euphrates.jpg','Halfeti_-_Savasan_köyü.jpg','Rumkale_25_05_2010_Savaşan.jpg','Rumkale_Fortress,_Halfeti.jpg','Rumkale_09_04_2004_Eski_Halfeti.jpg'],
 gol:['Balıklıgöl_Urfa2.jpg','Balikli_Göl_03.jpg','Şanlıurfa_balıklı_anzeliha_gölü.jpg','Halil_Ür-Rahman_Camii_9397.jpg','Mevlid-i_Halil_Mosque_19.jpg','Urfa_Castle_02.jpg']};
-const VID={gobekli:[['-3sEdIqrHME','Göbeklitepe kısa belgesel (2013)'],['rGzYaOIk6cA','Göbeklitepe: Uncovering']],halfeti:[['yKi360gcn04','Rumkale ve Halfeti tekne turu'],['nOChqIQf2uc','Atlantis\'in Çocukları: Halfeti sualtı']],gol:[['ECmpnhx637U','Balıklıgöl\'ün hikâyesi (TRT)'],['FPSCwSVEi-A','Şanlıurfa Balıklıgöl']]};
+const VID={gobekli:[['-3sEdIqrHME','Göbeklitepe kısa belgesel (2013)'],['rGzYaOIk6cA','Göbeklitepe: Uncovering']],halfeti:[['5Qmoi_Cx5I8','Halfeti tekne turu: Rumkale ve Savaşan'],['QlYawl74nsw','Halfeti gezi rehberi'],['nOChqIQf2uc','Atlantis\'in Çocukları: Halfeti sualtı']],gol:[['ECmpnhx637U','Balıklıgöl\'ün hikâyesi (TRT)'],['FPSCwSVEi-A','Şanlıurfa Balıklıgöl']]};
 const MK={
 gobekli:['Tam bilet 450 TL (2026)','Müzekart geçerli: standart kartla yılda 2 giriş','Öğrenci ve öğretmenler ücretsiz','Bilet Karşılama Merkezi gişesinden; gişe kapanıştan 30 dk önce kapanır'],
 muze:['Şanlıurfa Müzesi ve Haleplibahçe Mozaik Müzesi Kültür ve Turizm Bakanlığı müzeleri; Müzekart geçerli','Bilet ücretini gişede teyit edin'],
@@ -823,6 +824,33 @@ $('#todaySuggest').onclick=()=>{plan=['halfeti','gobekli','gol'];tDone=true;tOpe
 $('#todayReset').onclick=()=>{plan=[];tDone=false;tOpen=null;saveT();renderToday()};
 renderToday();
 
+/* ---------- hikâyeli rehber metinleri + doğrulanmış videolar ---------- */
+const STORY={
+zeugmam:[
+ ['Sular yükselirken','Bu müzedeki eserlerin hikâyesi bir yarışla başlar. Birecik Barajı su tutmadan önce Zeugma\'da hummalı kurtarma kazıları yapıldı; yüzlerce metrekare taban mozaiği, sütunlar, çeşmeler ve küçük eserler sular altında kalacak alanlardan kurtarılıp taşındı.'],
+ ['İkiz villalar yeniden kuruldu','Müze, eski Tekel Fabrikası arazisine yapıldı; inşaatı 2008\'de başladı, resmi açılışı 9 Eylül 2011\'de oldu. Sergi bir senaryo üzerine kuruldu: bugün su altında kalan Poseidon ve Euphrates villaları, mozaikleri özgün boyut ve konumlarında olacak şekilde müzenin içinde yeniden canlandırıldı. Odalara Zeugma\'da bulunan heykeller ve gündelik eşyalar yerleştirildi.'],
+ ['Çingene Kızı','Müzenin ve Gaziantep\'in simgesi olan Çingene Kızı, kurtarma kazıları sırasında devrilmiş bir sütunun altında bulundu. Aynı yapıya ait mozaik parçaları ise 1960\'larda kaçak kazılarla yurt dışına çıkarılmış ve 1965\'te ABD\'deki Bowling Green Devlet Üniversitesi\'ne satılmıştı. 2012\'de başlayan girişimlerle bu 12 parça 2018\'de Gaziantep\'e geri getirildi ve Çingene Kızı\'nın yanında sergilenmeye başladı.'],
+ ['Mars heykeli ve villalar','Poseidon ve Euphrates villalarında yüzlerce metrekare taban mozaiğinin yanında duvar resimleri ve bronz Mars, yani Ares heykeli bulundu. Mozaiklerde Okeanos ile Tethys, Akhilleus ve Europa gibi mitolojik sahneleri arayın.'],
+ ['Zemin kat','Zemin katta, Birecik Barajı gövdesinin hemen altında bulunan bir Roma hamamının mozaikleri sergileniyor.']],
+zeugmaa:[
+ ['Köprü kenti','Zeugma, MÖ 300 civarında I. Seleukos tarafından Seleukeia Euphrates adıyla kuruldu. Karşı kıyıdaki Apamea ile bir köprüyle bağlandı; Zeugma kelimesi köprü ya da geçit anlamına gelir.'],
+ ['Yükseliş ve yıkım','Kent önce Helenistik krallıklar, ardından Roma yönetiminde zenginleşti; villalarını süsleyen mozaikler bu dönemden kalır. MS 3. yüzyılda bir savaşta yıkıldı.'],
+ ['Barajın gölgesinde','2000 yılında Birecik Barajı su tutunca kentin büyük bölümü sular altında kaldı. Öncesinde yapılan acil kurtarma kazılarında çıkarılan eserlerin çoğu bugün Gaziantep\'teki Zeugma Mozaik Müzesi\'nde.']],
+harran:[
+ ['Kesintisiz bir kent','Kazı başkanı Prof. Dr. Mehmet Önal\'a göre Harran, MÖ 6. binyıldan bu yana kesintisiz yerleşim görmüş bir yer. Bir dönem Asurlulara, daha sonra Emevilere başkentlik yaptı.'],
+ ['Ay tanrısı Sin','Harran uzun yüzyıllar boyunca Ay tanrısı Sin\'e tapınmanın merkezi oldu. Roma tarihinin ünlü olaylarından biri de burada yaşandı: MÖ 53\'te Partlar, Crassus komutasındaki Roma ordusunu Harran yakınlarında yendi.'],
+ ['Ulu Cami','Ulu Cami, MS 744 ile 750 arasında Emevi Halifesi II. Mervan tarafından yaptırıldı ve Anadolu\'nun en eski anıtsal camilerinden biri sayılır. Yaklaşık 800 yıl önce Moğol istilasında yağmalanıp yıkıldı; buna rağmen doğu cephesi, mihrabı, şadırvanı ve minaresinin büyük bölümü ayakta kaldı. Kazı ve restorasyon çalışmaları 2024\'te tamamlandı.'],
+ ['Bilim merkezi','Harran ortaçağda bir bilim ve çeviri merkeziydi. Ünlü astronom el-Battani ve matematikçi Sabit bin Kurra burada yetişen bilginler arasında sayılır.'],
+ ['Kümbet evler','Harran\'ın simgesi olan konik kubbeli kerpiç evler yaklaşık 250 yıllık. Kalın duvarları ve kubbeleri sayesinde yazın serin, kışın sıcak kalır; bazıları bugün kültür evi olarak gezilebiliyor.']]};
+G.forEach(p=>{if(STORY[p.id])p.story=STORY[p.id]});
+Object.assign(VID,{
+ zeugmam:[['mzwkBrIj0OE','Müzelerin Yıldızları: Zeugma (TRT 2, 26. bölüm)'],['1_eHN7TH-kA','Müzelerin Yıldızları: Zeugma (TRT 2, 39. bölüm)'],['WkoQ2ELnoHs','Müzeyi kazı başkanı Prof. Kutalmış Görkay anlatıyor']],
+ zeugmaa:[['WkoQ2ELnoHs','Zeugma eserleri, kazı başkanının anlatımıyla']],
+ harran:[['xAGq8j-fa8M','Harran Kültür Evleri (4K)'],['T_f1NxeRjiA','Harran\'ın konik kubbeli evleri']],
+ yesemek:[['3jFfDteYqSQ','Yesemek Açık Hava Müzesi (Gaziantep\'i Tanıyalım)']],
+ rumkale:[['5Qmoi_Cx5I8','Halfeti tekne turu: Rumkale ve Savaşan']]});
+VID.gobekli=[...VID.gobekli,['QY8ybyufLLI','Göbeklitepe ve Taş Tepeler Projesi'],['d_eL5zyfGx0','Kazı başkanı Prof. Necmi Karul anlatıyor']];
+const storyHtml=p=>p.story?p.story.map(([h,b])=>'<h4 style="margin:12px 0 4px;font-size:16px">'+esc(h)+'</h4><p style="margin:0 0 6px">'+esc(b)+'</p>').join(''):'';
 /* ---------- BURADA: konumdaki yeri tur rehberi gibi tanıt ---------- */
 const WL=()=>lang==='en'?'en':'tr';
 const NONHIST=/mahallesi|neighbourhood|ilkokulu|ortaokulu|lisesi|hastanesi|caddesi|bulvarı|sokağı|istasyonu|stadyumu|avm|alışveriş merkezi|belediyesi|üniversitesi|fakültesi|seçim bölgesi|otel|kavşağı|köprülü kavşak|spor kulübü|futbol|merkez,|havalimanı|havaalanı|cezaevi|terminali|garı/i;
@@ -861,7 +889,7 @@ async function hereShow(p){
     const s=stopPool().find(x=>gkey(x.id)===p.id&&x.sec);
     el.innerHTML='<div class="hero">'+gallery(gkey(p.id),p.img)+'<div class="in"><h2>'+esc(p.n)+'</h2><div class="meta">'+meta+'</div>'+hereBtns(p)+
       (s?s.sec.map(([h,b])=>'<h4>'+esc(h)+'</h4><p>'+esc(b)+'</p>').join('')+'<h4>Gezerken sırasıyla</h4><ol style="margin:0;padding-left:20px">'+s.see.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ol><div class="tip" style="margin:10px 0 0"><b>Not</b>'+esc(s.tip)+'</div>'
-        :'<h4>Tanıtım</h4><ul style="margin:0;padding-left:18px">'+(p.facts||[]).map(f=>'<li>'+esc(tx(f))+'</li>').join('')+'</ul>'+(p.visit?'<div class="tip" style="margin:10px 0 0"><b>Ziyaret</b>'+esc(tx(p.visit))+'</div>':''))+
+        :(p.story?storyHtml(p)+'<h4>Kısa bilgiler</h4>':'<h4>Tanıtım</h4>')+'<ul style="margin:0;padding-left:18px">'+(p.facts||[]).map(f=>'<li>'+esc(tx(f))+'</li>').join('')+'</ul>'+(p.visit?'<div class="tip" style="margin:10px 0 0"><b>Ziyaret</b>'+esc(tx(p.visit))+'</div>':''))+
       mkBox(gkey(p.id))+videos(gkey(p.id))+'<div id="hereWiki"></div><div class="src">Rehber bilgisi doğrulanmış kaynaklardan derlendi.</div></div></div>';
   }else{
     el.innerHTML='<div class="hero"><div class="in"><h2>'+esc(p.n)+'</h2><div class="meta">'+meta+'</div><div class="note">Tanıtım ve fotoğraflar yükleniyor…</div></div></div>';
@@ -972,7 +1000,7 @@ function agText(p){
   if(p.w)return p.text||p.n;
   const s=(typeof stopPool==='function'?stopPool():[]).find(x=>gkey(x.id)===p.id&&x.sec);
   if(s)return s.n+'. '+s.sec.map(([h,b])=>h+'. '+b).join(' ');
-  return tx(p.n)+'. '+(p.story?tx(p.story)+' ':'')+(p.facts||[]).map(tx).join(' ')+(p.visit?' Ziyaret notu: '+tx(p.visit):'');
+  return tx(p.n)+'. '+(p.story?p.story.map(([h,b])=>h+'. '+b).join(' ')+' ':'')+(p.facts||[]).map(tx).join(' ')+(p.visit?' Ziyaret notu: '+tx(p.visit):'');
 }
 function agVoice(){const L2=agVoices();return L2.find(v=>v.name===AG.voice)||L2[0]}
 function agSay(text,done){
