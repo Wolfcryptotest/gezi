@@ -104,9 +104,11 @@ a{color:var(--teal)}
 
   <!-- YAKINIMDA -->
   <section class="view on" id="v-bugun">
-    <div class="row2"><label class="note" for="tStart">Çıkış saati</label><input type="time" id="tStart" value="09:00" style="flex:0 0 120px"><button class="btn alt" id="todayRoute" type="button">Rotayı haritada göster</button></div>
-    <div class="status">Gaziantep → Halfeti → Göbeklitepe → Balıklıgöl → Gaziantep. Bir durağa dokunun: tarihçe, sırayla görülecekler, yol tarifi ve sesli anlatım açılır.</div>
+    <div class="row2"><label class="note" for="tStart">Çıkış saati</label><input type="time" id="tStart" value="09:00" style="flex:0 0 120px"><button class="btn alt" id="todayRoute" type="button">Haritada göster</button></div>
+    <div class="row2"><button class="btn sm alt" id="todaySuggest" type="button">Önerilen sıra: Halfeti → Göbeklitepe → Balıklıgöl</button><button class="btn sm alt" id="todayReset" type="button">Baştan seç</button></div>
+    <div class="status">Başlangıç Gaziantep. Aşağıdan sıradaki durağı seçin; her durakta fotoğraf, rehber anlatımı, sesli anlatım ve yol tarifi açılır. Satıra dokunarak açıp kapatın.</div>
     <div class="list" id="todayList"></div>
+    <div id="todayChoices"></div>
   </section>
 
   <section class="view" id="v-yakin">
@@ -523,7 +525,7 @@ async function fillCoords(){
     await new Promise(r=>setTimeout(r,1100));
     renderGuide();
   }
-  renderGuide();
+  renderGuide();if(typeof renderToday==='function')renderToday();
 }
 function renderGuide(){
   const ref=me||[37.1477,38.7844];
@@ -600,34 +602,79 @@ const TODAY=[
  say:'Dönüş otoyoldan. HGS ücreti otomobil için tek yön 101,65 TL. Yorgunsanız Birecik\'teki dinlenme tesislerinde mola verin.'}
 ];
 let tOpen=null,speaking=null;
-function tTimes(){
-  const [h,m]=(store.get('tStart','09:00')).split(':').map(Number);let t=h*60+m;
-  return TODAY.map(s=>{const a=t;t+=s.min;return [a,t]});
+const START={id:'start',n:'Gaziantep',lat:37.0662,lon:37.3833,to:'Gaziantep'};
+const SC={halfeti:[37.2452,37.8648],gobekli:[37.2233,38.9224],gol:[37.1477,38.7844]};
+const SUB={halfeti:'Batık şehir · Rumkale · tekne turu',gobekli:'12 bin yıllık anıtsal yapılar · UNESCO',gol:'Kutsal göl · camiler · kale · çarşı'};
+function stopPool(){
+  const main=TODAY.filter(s=>s.t==='stop').map(s=>({...s,lat:SC[s.id][0],lon:SC[s.id][1],sub:SUB[s.id]}));
+  const extra=G.filter(p=>['muze','harran','eyup'].includes(p.id)&&p.lat!=null).map(p=>({id:'g_'+p.id,t:'stop',n:p.n,lat:p.lat,lon:p.lon,to:p.q||p.n,img:p.img,by:p.by,sub:p.sub,min:p.id==='harran'?90:p.id==='muze'?120:45,sec:[['Tarihçe',p.facts.join(' ')]],see:[p.visit],tip:'Açılış saatlerini gitmeden kontrol edin.'}));
+  return [...main,...extra];
 }
-const hm=x=>String(Math.floor(x/60)%24).padStart(2,'0')+':'+String(x%60).padStart(2,'0');
+let plan=store.get('tPlan',[]),tDone=store.get('tDone',false),legCache=store.get('legCache',{}),legBusy={};
+const saveT=()=>{store.set('tPlan',plan);store.set('tDone',tDone)};
+function leg(a,b){
+  const k=a.lat.toFixed(3)+','+a.lon.toFixed(3)+'>'+b.lat.toFixed(3)+','+b.lon.toFixed(3);
+  if(legCache[k])return legCache[k];
+  if(!legBusy[k]){legBusy[k]=1;osrm('car',[[a.lat,a.lon],[b.lat,b.lon]]).then(r=>{legCache[k]={m:r.distance,s:r.duration};store.set('legCache',legCache);renderToday()}).catch(()=>{})}
+  const m=hav([a.lat,a.lon],[b.lat,b.lon])*1.35;return{m,s:m/18,est:1};
+}
+function sayFor(a,b){
+  const t=Object.fromEntries(TODAY.filter(x=>x.t==='drive').map(x=>[x.id,x.say]));
+  let s=[];
+  if(a.id==='start'&&b.id!=='start')s.push('Gaziantep\'ten çıkıp Nizip ve Birecik yönüne gidiyoruz. Birecik\'te Fırat\'ı geçerken nehrin geniş yatağına bakın; burası Mezopotamya ile Anadolu arasındaki tarihî geçitlerden biri. Birecik, nesli tükenme tehlikesindeki kelaynak kuşlarının üretildiği istasyonla da bilinir.');
+  if(a.id==='halfeti')s.push('Önce Birecik\'e geri dönüyoruz, oradan otoyola çıkıyoruz.');
+  if(b.id==='halfeti')s.push('Halfeti\'de arabayı marina yakınındaki otoparklara bırakın; tekneler marinadan kalkar.');
+  if(b.id==='gobekli')s.push('Göbeklitepe Şanlıurfa\'nın kuzeydoğusunda, Örencik yakınında. Navigasyonu ören yerine değil, Karşılama Merkezi\'ne kurun; arabayı oraya bırakıp ücretsiz ring servisiyle çıkacaksınız.');
+  if(b.id==='gol')s.push(t.t2||'');
+  if(b.id==='start')s.push(t.t3||'');
+  return s.filter(Boolean).join(' ')||(a.n+' çıkışlı, '+b.n+' yönüne.');
+}
+const hm=x=>String(Math.floor(x/60)%24).padStart(2,'0')+':'+String(Math.round(x)%60).padStart(2,'0');
+const img=(f,w)=>'https://commons.wikimedia.org/wiki/Special:FilePath/'+encodeURIComponent(f)+'?width='+w;
+function guideBody(s){
+  return (s.img?'<img src="'+img(s.img,900)+'" alt="'+esc(s.n)+'" loading="lazy" onerror="this.remove()"><div class="cr">Foto: '+esc(s.by)+' / Wikimedia Commons</div>':'')+
+    s.sec.map(([h,p])=>'<h4 style="margin:12px 0 4px;font-size:16px">'+esc(h)+'</h4><p style="margin:0">'+esc(p)+'</p>').join('')+
+    '<h4 style="margin:12px 0 4px;font-size:16px">Gezerken sırasıyla</h4><ol style="margin:0;padding-left:20px">'+s.see.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ol>'+
+    '<div class="tip" style="margin:10px 0 0"><b>Not</b>'+esc(s.tip)+'</div>';
+}
+function navBtns(to,speakId){
+  return '<a class="btn sm" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&travelmode=driving&destination='+encodeURIComponent(to)+'">Google ile yol tarifi</a><a class="btn sm alt" target="_blank" rel="noopener" href="https://yandex.com.tr/maps/?rtext=~'+encodeURIComponent(to)+'&rtt=auto">Yandex ile</a>'+(speakId?'<button class="btn sm red" data-speak="'+speakId+'">'+(speaking===speakId?'Anlatımı durdur':'Sesli anlat')+'</button>':'');
+}
 function renderToday(){
-  const T=tTimes();
-  $('#todayList').innerHTML=TODAY.map((s,i)=>{
-    const op=tOpen===s.id;
-    const head='<button class="it" data-today="'+s.id+'" aria-expanded="'+op+'"><span class="d" style="background:'+(s.t==='drive'?'#c98a12':'#0b4e4a')+'"></span><span><b>'+esc(s.n)+'</b><small>'+(s.t==='drive'?'Araçla · '+s.km+' · ~'+fMin(s.min*60):'Gezi · ~'+fMin(s.min*60)+' ayırın')+'</small></span><span class="km">'+hm(T[i][0])+'<small>'+hm(T[i][1])+'</small></span></button>';
-    if(!op)return head;
-    const nav='https://www.google.com/maps/dir/?api=1&travelmode=driving&destination='+encodeURIComponent(s.to);
-    const yn='https://yandex.com.tr/maps/?rtext=~'+encodeURIComponent(s.to)+'&rtt=auto';
-    let body='';
-    if(s.t==='drive')body='<p style="margin:0 0 8px">'+esc(s.say)+'</p>';
-    else body=(s.img?'<img src="https://commons.wikimedia.org/wiki/Special:FilePath/'+encodeURIComponent(s.img)+'?width=900" alt="'+esc(s.n)+'" loading="lazy" onerror="this.remove()"><div class="cr">Foto: '+esc(s.by)+' / Wikimedia Commons</div>':'')+
-      s.sec.map(([h,p])=>'<h4 style="margin:12px 0 4px;font-size:16px">'+esc(h)+'</h4><p style="margin:0">'+esc(p)+'</p>').join('')+
-      '<h4 style="margin:12px 0 4px;font-size:16px">Gezerken sırasıyla</h4><ol style="margin:0;padding-left:20px">'+s.see.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ol>'+
-      '<div class="tip" style="margin:10px 0 0"><b>Not</b>'+esc(s.tip)+'</div>';
-    return head+'<div class="det">'+body+'<div class="btns"><a class="btn sm" target="_blank" rel="noopener" href="'+nav+'">Google ile yol tarifi</a><a class="btn sm alt" target="_blank" rel="noopener" href="'+yn+'">Yandex ile</a><button class="btn sm red" data-speak="'+s.id+'">'+(speaking===s.id?'Anlatımı durdur':'Sesli anlat')+'</button></div></div>';
-  }).join('');
+  const pool=stopPool(),by=Object.fromEntries(pool.map(p=>[p.id,p]));
+  plan=plan.filter(id=>by[id]);
+  const seq=[START,...plan.map(id=>by[id])];
+  const [h0,m0]=(store.get('tStart','09:00')).split(':').map(Number);let t=h0*60+m0;
+  let html='<div class="it" style="cursor:default"><span class="d" style="background:#1a73e8"></span><span><b>Başlangıç: Gaziantep</b><small>Çıkış</small></span><span class="km">'+hm(t)+'</span></div>';
+  const legRow=(a,b,key)=>{const L=leg(a,b);const mins=L.s/60;const a0=t;t+=mins;const op=tOpen===key;
+    let r='<button class="it" data-today="'+key+'" aria-expanded="'+op+'"><span class="d" style="background:#c98a12"></span><span><b>'+esc(a.n)+' → '+esc(b.n)+'</b><small>Araçla · '+(L.est?'~':'')+fKm(L.m)+' · '+(L.est?'~':'')+fMin(L.s)+'</small></span><span class="km">'+hm(a0)+'<small>'+hm(t)+'</small></span></button>';
+    if(op)r+='<div class="det"><p style="margin:0 0 8px">'+esc(sayFor(a,b))+'</p><div class="btns">'+navBtns(b.to)+'</div></div>';return r};
+  for(let i=1;i<seq.length;i++){
+    const a=seq[i-1],s=seq[i];
+    html+=legRow(a,s,'L'+i);
+    const a0=t;t+=s.min;const op=tOpen===s.id;
+    let warn='';if(s.id==='gobekli'&&a0>16*60)warn=' · varış geç, kapanışa dikkat';
+    html+='<button class="it" data-today="'+s.id+'" aria-expanded="'+op+'"><span class="d" style="background:#0b4e4a"></span><span><b>'+i+'. '+esc(s.n)+'</b><small>Gezi · ~'+fMin(s.min*60)+' ayırın'+warn+'</small></span><span class="km">'+hm(a0)+'<small>'+hm(t)+'</small></span></button>';
+    if(op)html+='<div class="det">'+guideBody(s)+'<div class="btns">'+navBtns(s.to,s.id)+'<button class="btn sm alt" data-rmstop="'+s.id+'">Bu durağı çıkar</button></div></div>';
+  }
+  if(tDone&&plan.length){html+=legRow(seq[seq.length-1],START,'Lend');html+='<div class="it" style="cursor:default"><span class="d" style="background:#1a73e8"></span><span><b>Varış: Gaziantep</b><small>Gün tamam</small></span><span class="km">'+hm(t)+'</span></div>'}
+  $('#todayList').innerHTML=html;
+  const last=seq[seq.length-1];
+  const left=pool.filter(p=>!plan.includes(p.id));
+  let ch='';
+  if(!tDone){
+    ch='<div class="sec" style="font-size:16px;color:var(--ink)">'+(plan.length?esc(last.n)+'\'den sonra nereye gitmek istersiniz?':'Gaziantep\'ten ilk durak nereye olsun?')+'</div><div class="list">'+
+      left.map(p=>{const L=leg(last,p);return '<button class="it" data-pick="'+p.id+'" style="grid-template-columns:64px minmax(0,1fr) auto">'+(p.img?'<img src="'+img(p.img,160)+'" alt="" loading="lazy" style="width:64px;height:48px;object-fit:cover;border-radius:8px" onerror="this.style.visibility=\'hidden\'">':'<span></span>')+'<span><b>'+esc(p.n)+'</b><small>'+esc(p.sub||'')+'</small></span><span class="km">'+(L.est?'~':'')+fKm(L.m)+'<small>'+(L.est?'~':'')+fMin(L.s)+'</small></span></button>'}).join('')+
+      (plan.length?'<button class="it" data-pick="home" style="grid-template-columns:64px minmax(0,1fr) auto"><span></span><span><b>Gaziantep\'e dön</b><small>Günü bitir</small></span><span class="km">'+fKm(leg(last,START).m)+'<small>'+fMin(leg(last,START).s)+'</small></span></button>':'')+'</div>';
+  }else ch='<div class="row2"><button class="btn alt" data-pick="undo">Dönüşü geri al, durak ekle</button></div>';
+  $('#todayChoices').innerHTML=ch;
 }
 function speak(id){
   if(!('speechSynthesis' in window)){alert('Bu tarayıcı sesli anlatımı desteklemiyor.');return}
   speechSynthesis.cancel();
   if(speaking===id){speaking=null;renderToday();return}
-  const s=TODAY.find(x=>x.id===id);
-  const txt=s.t==='drive'?s.n+'. '+s.say:s.n+'. '+s.sec.map(([h,p])=>h+'. '+p).join(' ');
+  const s=stopPool().find(x=>x.id===id);if(!s)return;
+  const txt=s.n+'. '+s.sec.map(([h,p])=>h+'. '+p).join(' ');
   const parts=txt.match(/[^.!?]+[.!?]*/g)||[txt];
   const v=speechSynthesis.getVoices().find(x=>/^tr/i.test(x.lang));
   parts.forEach((p,i)=>{const u=new SpeechSynthesisUtterance(p.trim());u.lang='tr-TR';if(v)u.voice=v;u.rate=.95;if(i===parts.length-1)u.onend=()=>{if(speaking===id){speaking=null;renderToday()}};speechSynthesis.speak(u)});
@@ -635,11 +682,18 @@ function speak(id){
 }
 $('#tStart').value=store.get('tStart','09:00');
 $('#tStart').onchange=()=>{store.set('tStart',$('#tStart').value||'09:00');renderToday()};
-$('#todayList').addEventListener('click',e=>{
+$('#v-bugun').addEventListener('click',e=>{
   const sp=e.target.closest('[data-speak]');if(sp){speak(sp.dataset.speak);return}
-  const it=e.target.closest('[data-today]');if(it){tOpen=tOpen===it.dataset.today?null:it.dataset.today;renderToday();document.querySelector('[data-today="'+it.dataset.today+'"]').scrollIntoView({block:'nearest'})}
+  const rm=e.target.closest('[data-rmstop]');if(rm){plan=plan.filter(x=>x!==rm.dataset.rmstop);tOpen=null;saveT();renderToday();return}
+  const pk=e.target.closest('[data-pick]');
+  if(pk){const id=pk.dataset.pick;
+    if(id==='home')tDone=true;else if(id==='undo')tDone=false;else{plan.push(id);tOpen=id}
+    saveT();renderToday();if(id!=='home'&&id!=='undo'){const el=document.querySelector('[data-today="'+id+'"]');el&&el.scrollIntoView({block:'start',behavior:'smooth'})}return}
+  const it=e.target.closest('[data-today]');if(it){tOpen=tOpen===it.dataset.today?null:it.dataset.today;renderToday();const el=document.querySelector('[data-today="'+it.dataset.today+'"]');el&&el.scrollIntoView({block:'nearest'})}
 });
-$('#todayRoute').onclick=()=>{pts=[{n:'Gaziantep',lat:37.0662,lon:37.3833},{n:'Halfeti',lat:37.2452,lon:37.8648},{n:'Göbeklitepe',lat:37.2233,lon:38.9224},{n:'Balıklıgöl, Şanlıurfa',lat:37.1477,lon:38.7844}];$('#dep').value=$('#tStart').value||'09:00';renderPts();go('rota');buildRoute()};
+$('#todayRoute').onclick=()=>{const by=Object.fromEntries(stopPool().map(p=>[p.id,p]));const seq=[START,...plan.map(id=>by[id]).filter(Boolean)];if(tDone)seq.push(START);if(seq.length<2){alert('Önce bir durak seçin.');return}pts=seq.map(p=>({n:p.n,lat:p.lat,lon:p.lon}));$('#dep').value=$('#tStart').value||'09:00';renderPts();go('rota');buildRoute()};
+$('#todaySuggest').onclick=()=>{plan=['halfeti','gobekli','gol'];tDone=true;tOpen=null;saveT();renderToday()};
+$('#todayReset').onclick=()=>{plan=[];tDone=false;tOpen=null;saveT();renderToday()};
 renderToday();
 
 /* ---------- başlat ---------- */
