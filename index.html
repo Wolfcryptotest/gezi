@@ -886,7 +886,7 @@ async function hereShow(p){
   here.sel=p;const el=$('#hereCard');const dist=here.c?hav(here.c,[p.lat,p.lon]):null;
   const meta=esc(p.sub||'')+(dist!=null?' · '+fKm(dist)+(dist<150?' · buradasınız':''):'');
   if(p.cur){
-    const s=stopPool().find(x=>gkey(x.id)===p.id&&x.sec);
+    const s=!p.story&&stopPool().find(x=>gkey(x.id)===p.id&&x.sec);
     el.innerHTML='<div class="hero">'+gallery(gkey(p.id),p.img)+'<div class="in"><h2>'+esc(p.n)+'</h2><div class="meta">'+meta+'</div>'+hereBtns(p)+
       (s?s.sec.map(([h,b])=>'<h4>'+esc(h)+'</h4><p>'+esc(b)+'</p>').join('')+'<h4>Gezerken sırasıyla</h4><ol style="margin:0;padding-left:20px">'+s.see.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ol><div class="tip" style="margin:10px 0 0"><b>Not</b>'+esc(s.tip)+'</div>'
         :(p.story?storyHtml(p)+'<h4>Kısa bilgiler</h4>':'<h4>Tanıtım</h4>')+'<ul style="margin:0;padding-left:18px">'+(p.facts||[]).map(f=>'<li>'+esc(tx(f))+'</li>').join('')+'</ul>'+(p.visit?'<div class="tip" style="margin:10px 0 0"><b>Ziyaret</b>'+esc(tx(p.visit))+'</div>':''))+
@@ -998,7 +998,7 @@ $('#agMode').onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;AG.mo
 agModeUI();
 function agText(p){
   if(p.w)return p.text||p.n;
-  const s=(typeof stopPool==='function'?stopPool():[]).find(x=>gkey(x.id)===p.id&&x.sec);
+  const s=!p.story&&(typeof stopPool==='function'?stopPool():[]).find(x=>gkey(x.id)===p.id&&x.sec);
   if(s)return s.n+'. '+s.sec.map(([h,b])=>h+'. '+b).join(' ');
   return tx(p.n)+'. '+(p.story?p.story.map(([h,b])=>h+'. '+b).join(' ')+' ':'')+(p.facts||[]).map(tx).join(' ')+(p.visit?' Ziyaret notu: '+tx(p.visit):'');
 }
