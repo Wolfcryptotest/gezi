@@ -1119,7 +1119,7 @@ function durOf(p){
   if(p.kind==='museum')return 75;
   if(p.kind==='worship')return 20;
   if(p.kind==='nature')return /kanyon|milli park|vadi/i.test(t)?90:45;
-  if(/çeşme|saat kulesi|kemer|anıt|kule|köprü/i.test(t))return 15;
+  if(/çeşme|saat kulesi|kemer|anıt|kule|köprü|türbe|kümbet|sebil/i.test(t))return 15;
   if(/han\b|bedesten|çarşı|hamam|konak|\bev\b/i.test(t))return 40;
   if(/antik|ören|arkeolojik|höyük|kale|hisar|saray|tiyatro/i.test(t))return 75;
   return 40;
@@ -1157,7 +1157,7 @@ async function wdPlaces(bb){
 }
 function plInts(){return [...document.querySelectorAll('#plInt [data-i]')].filter(b=>b.getAttribute('aria-pressed')==='true').map(b=>b.dataset.i)}
 $('#plInt').onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;b.setAttribute('aria-pressed',b.getAttribute('aria-pressed')==='true'?'false':'true')};
-function plScore(p){return (p.cur?100:0)+p.sl*3+(p.img?3:0)+(p.w?2:0)+({museum:4,hist:3,nature:3,worship:0}[p.kind]||0)-(p.dur<=15?3:0)}
+function plScore(p){return (p.cur?100:0)+p.sl*3+(p.img?3:0)+(p.w?2:0)+({museum:4,hist:3,nature:3,worship:-2}[p.kind]||0)-(p.dur<=15?3:0)}
 async function plPool(to){
   const [s,n,w,e]=to.bb,inBB=p=>p.lat>=s&&p.lat<=n&&p.lon>=w&&p.lon<=e;
   const cur=G.filter(p=>p.lat!=null&&inBB(p)).map(p=>({...p,kind:p.c==='museum'?'museum':/cami/i.test(p.n)?'worship':'hist',sl:5,tl:p.sub}));
@@ -1169,7 +1169,7 @@ async function plPool(to){
   return all.sort((a,b)=>b.score-a.score);
 }
 function plBuild(P){
-  const per={relax:4,normal:6,fast:8}[P.pace]||6,ints=P.ints;
+  const per={relax:5,normal:7,fast:9}[P.pace]||7,ints=P.ints;
   let rem=PL.pool.filter(p=>!PL.excl.has(p.id)&&ints.includes(p.kind));
   const days=[];let cur=[P.from.lat,P.from.lon];
   for(let d=0;d<P.days;d++){
@@ -1181,9 +1181,9 @@ function plBuild(P){
       if(!best)break;
       const dist=hav(cur,[best.lat,best.lon]),leg=estDrive(dist)/60;
       if(!lunch&&cnt>0&&t+leg>=12.5*60){items.push({k:'lunch',t,loc:cur.slice()});t+=60;lunch=true}
-      if(t+leg+best.dur>dayEnd&&cnt>0)break;
+      if(t+leg+best.dur>dayEnd&&cnt>0){if(rem.length>1){rem=rem.filter(x=>x!==best);rem.push(best)}break}
       items.push({k:'stop',p:best,t:t+leg,dist,leg});t+=leg+best.dur;cur=[best.lat,best.lon];
-      rem=rem.filter(x=>x!==best);cnt++;if(best.kind==='worship')wor++;
+      rem=rem.filter(x=>x!==best);cnt+=best.dur<=20?0.5:1;if(best.kind==='worship')wor++;
     }
     if(!lunch&&cnt>0&&t>13*60){const i=items.findIndex(x=>x.k==='stop'&&x.t+x.p.dur>=12.5*60);if(i>=0){const at=items[i].t+items[i].p.dur;items.splice(i+1,0,{k:'lunch',t:at,loc:[items[i].p.lat,items[i].p.lon]});for(let j=i+2;j<items.length;j++)items[j].t+=60;t+=60}}
     const last=d===P.days-1;
