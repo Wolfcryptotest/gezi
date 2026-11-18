@@ -1146,7 +1146,7 @@ async function wdPlaces(bb,minSl,lim,ms,tries){
   }
   const out=[];
   for(const o of Object.values(by)){
-    if(/^Q\d+$/.test(o.n))continue;
+    if(/^Q\d+$/.test(o.n)||/\bgar[ıi](?![a-zçğıöşü])|istasyon|havaliman|havaalan|stadyum|üniversite|hastane|lisesi|okulu|terminal|otogar/i.test(o.n))continue;
     const tls=[...o.tls];
     let kind=null,tl='';for(const t of tls){const k=kindOf(t);if(k){kind=k;tl=t;break}}
     if(!kind){const k=kindOf(o.n);if(k&&k!=='nature'){kind=k;tl=''}}
