@@ -964,9 +964,9 @@ async function foodLoad(c,label){
   for(const q of ['restaurant','kebap','ciğer','lokanta','ocakbaşı','pastane','cafe']){
     try{const r=await fetchJ('https://nominatim.openstreetmap.org/search?format=json&limit=40&bounded=1&viewbox='+vb+'&q='+encodeURIComponent(q),{},1,12000);
       r.forEach(x=>{if(!x.name||seen.has(x.osm_type+x.osm_id))return;seen.add(x.osm_type+x.osm_id);
-        const isCafe=/cafe|bakery|confectionery|ice_cream/.test(x.type)||/pastane|kafe|cafe|kahve|baklava/i.test(x.name);
+        const isCafe=!/ciğer|ciger|kebap|kebab|lokanta|restoran|restaurant|ocakbaşı|ocakbasi|döner|lahmacun|sofra/i.test(x.name)&&(/cafe|bakery|confectionery|ice_cream/.test(x.type)||/pastane|kafe|cafe|kahve|baklava|çay/i.test(x.name));
         res.push({id:'o'+x.osm_id,n:x.name,lat:+x.lat,lon:+x.lon,c:isCafe?'cafe':'food',sub:isCafe?'Kafe / tatlı':'Lokanta / kebap',tags:{}})});
-      if(here.mode==='food')$('#hereStatus').textContent='Aranıyor… '+res.length+' yer bulundu';
+      if(here.mode==='food'){$('#hereStatus').textContent='Aranıyor… '+res.length+' yer bulundu';here.items=res.map(p=>({...p,d:hav(c,[p.lat,p.lon])})).sort((a,b)=>a.d-b.d).slice(0,40);$('#hereListH').textContent='Yakındaki yemek yerleri';$('#hereListH').hidden=!here.items.length;renderHereList();drawPois()}
     }catch(e){}
     await new Promise(r=>setTimeout(r,1050));
     if(here.mode!=='food')return;
@@ -990,7 +990,7 @@ async function foodShow(p){
   el.innerHTML='<div class="in"><h2>'+esc(p.n)+'</h2><div class="meta">'+esc(p.sub)+' · kuş uçuşu '+fKm(p.d)+' · yürüyerek ~'+walkMin(p.d)+' dk</div>'+(p.note?'<p>'+esc(p.note)+'</p>':'')+
    '<div class="btns"><button class="btn sm red" data-froute="foot">🚶 Yürüyüş rotası</button><button class="btn sm" data-froute="car">🚗 Araç rotası</button><a class="btn sm alt" target="_blank" rel="noopener" href="'+g+'">Google Haritalar</a></div><div class="note" id="frInfo"></div><div class="src">Konum: OpenStreetMap. Açılış saatlerini mekândan teyit edin.</div></div>';
   const old=$('#foodCard');if(old)old.replaceWith(el);else $('#hereCard').prepend(el);
-  el.scrollIntoView({behavior:'smooth',block:'start'});
+  if($('#map').classList.contains('small'))$('#mapToggle').click();window.scrollTo({top:0,behavior:'smooth'});
   foodRoute('foot');
 }
 async function foodRoute(mode){
