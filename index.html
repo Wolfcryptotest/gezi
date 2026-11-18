@@ -95,14 +95,21 @@ a{color:var(--teal)}
 <div class="wrap">
   <div id="tripbar"></div>
   <div class="tabs" role="tablist">
-    <button class="tab" data-v="yakin" aria-selected="true">Yakınımda</button>
+    <button class="tab" data-v="bugun" aria-selected="true">Bugün</button>
+    <button class="tab" data-v="yakin" aria-selected="false">Yakınımda</button>
     <button class="tab" data-v="rota" aria-selected="false">Rota</button>
     <button class="tab" data-v="rehber" aria-selected="false">Urfa rehberi</button>
     <button class="tab" data-v="bilgi" aria-selected="false">Bilgi</button>
   </div>
 
   <!-- YAKINIMDA -->
-  <section class="view on" id="v-yakin">
+  <section class="view on" id="v-bugun">
+    <div class="row2"><label class="note" for="tStart">Çıkış saati</label><input type="time" id="tStart" value="09:00" style="flex:0 0 120px"><button class="btn alt" id="todayRoute" type="button">Rotayı haritada göster</button></div>
+    <div class="status">Gaziantep → Halfeti → Göbeklitepe → Balıklıgöl → Gaziantep. Bir durağa dokunun: tarihçe, sırayla görülecekler, yol tarifi ve sesli anlatım açılır.</div>
+    <div class="list" id="todayList"></div>
+  </section>
+
+  <section class="view" id="v-yakin">
     <form class="row2" id="nearForm">
       <input id="nearQ" placeholder="Konum yazın (il, ilçe, mekân) ya da Konumum'a basın">
       <button class="btn">Bul</button>
@@ -197,9 +204,9 @@ async function fetchJ(url,opt,tries=2,ms=20000){
   throw new Error('ağ');
 }
 const OVERPASS=['https://overpass-api.de/api/interpreter','https://overpass.private.coffee/api/interpreter','https://maps.mail.ru/osm/tools/overpass/api/interpreter','https://overpass.kumi.systems/api/interpreter'];
-async function overpass(q){
+async function overpass(q,ms=45000){
   const body='data='+encodeURIComponent(q);
-  try{return await Promise.any(OVERPASS.map(u=>fetchJ(u,{method:'POST',body},1,45000).then(j=>{if(!j||!j.elements)throw 0;return j})))}catch(e){throw new Error('overpass')}
+  try{return await Promise.any(OVERPASS.map(u=>fetchJ(u,{method:'POST',body},1,ms).then(j=>{if(!j||!j.elements)throw 0;return j})))}catch(e){throw new Error('overpass')}
 }
 async function geocode(q){
   const j=await fetchJ('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=tr&accept-language=tr&q='+encodeURIComponent(q));
@@ -286,7 +293,7 @@ async function detail(p,list){
       '<a class="btn sm alt" target="_blank" rel="noopener" href="'+g+'">Google</a>'+
       '<a class="btn sm alt" target="_blank" rel="noopener" href="'+y+'">Yandex</a>'+
       (web?'<a class="btn sm alt" target="_blank" rel="noopener" href="'+esc(web)+'">Web sitesi</a>':'')+
-    '</div><div class="src">'+(p.cur?'Rehber bilgisi doğrulanmış kaynaklardan.':'Bilgi kaynağı: OpenStreetMap')+'</div>';
+    '</div><div class="src">'+(p.cur?'Rehber bilgisi doğrulanmış kaynaklardan.':(p.id[0]==='w'?'Bilgi kaynağı: Vikipedi':'Bilgi kaynağı: OpenStreetMap'))+'</div>';
   el.querySelector('[data-act=zoom]').onclick=()=>{if($('#map').classList.contains('small'))$('#mapToggle').click();map.setView([p.lat,p.lon],16);window.scrollTo({top:0,behavior:'smooth'})};
   el.querySelector('[data-act=add]').onclick=()=>{addPoint({n:p.n,lat:p.lat,lon:p.lon},true)};
   // fotoğraf ve özet
@@ -319,16 +326,16 @@ async function loadNear(center,label){
   $('#nearStatus').textContent=(label||'Konumunuz')+' çevresindeki yerler aranıyor…';
   map.setView(center,r<=3000?15:r<=7000?13:r<=15000?12:11);
   try{
-    const j=await overpass(`[out:json][timeout:25];(${FILTERS(`(around:${r},${center[0]},${center[1]})`)});out center tags 600;`);
+    const j=await overpass(`[out:json][timeout:25];(${FILTERS(`(around:${r},${center[0]},${center[1]})`)});out center tags 600;`,20000);
     const seen=new Set();
     near=j.elements.map(e=>toPoi(e,center)).filter(p=>p&&!seen.has(p.n+p.c)&&seen.add(p.n+p.c)).sort((a,b)=>a.d-b.d);
     const cnt=c=>near.filter(p=>p.c===c).length;
     $('#nearStatus').textContent=(label||'Konumunuz')+' · '+fKm(r)+' içinde '+near.length+' yer ('+(cnt('hist')+cnt('museum')+cnt('view'))+' gezilecek, '+(cnt('food')+cnt('cafe'))+' yeme-içme, '+cnt('fuel')+' akaryakıt). Satıra dokunun.';
     renderList('near');
-  }catch(e){near=G.filter(p=>p.lat!=null).map(p=>({...p,d:hav(center,[p.lat,p.lon])})).filter(p=>p.d<=Math.max(r,20000)).sort((a,b)=>a.d-b.d);renderList('near');$('#nearStatus').innerHTML='Harita veri sunucusu şu an yoğun; yakındaki yerler alınamadı'+(near.length?', rehberdeki yakın yerler gösteriliyor':'')+'. <button class="btn sm" onclick="nearForm.requestSubmit()">Tekrar dene</button>'}
+  }catch(e){let w=[];try{w=await wikiNear(center,r)}catch(er){}const gg=G.filter(p=>p.lat!=null).map(p=>({...p,d:hav(center,[p.lat,p.lon])})).filter(p=>p.d<=Math.max(r,20000));const names=new Set(gg.map(p=>norm(p.n)));near=[...gg,...w.filter(p=>!names.has(norm(p.n)))].sort((a,b)=>a.d-b.d);renderList('near');$('#nearStatus').innerHTML='Ayrıntılı harita verisi (akaryakıt, yemek) şu an alınamadı; '+(near.length?near.length+' tarihî/gezilecek yer rehberden ve Vikipedi\'den gösteriliyor':'yakında yer bulunamadı')+'. <button class="btn sm" onclick="nearForm.requestSubmit()">Tekrar dene</button>'}
 }
 $('#nearForm').onsubmit=async e=>{e.preventDefault();const q=$('#nearQ').value.trim();if(!q){locate(true);return}
-  try{$('#nearStatus').textContent='Konum aranıyor…';const g=await geocode(q);loadNear([g.lat,g.lon],q)}catch(er){$('#nearStatus').textContent='"'+q+'" bulunamadı. Başka bir yazım deneyin.'}};
+  try{const h=aliasHit(q);if(h){loadNear([h.lat,h.lon],h.n);return}$('#nearStatus').textContent='Konum aranıyor…';const g=await geocode(q);loadNear([g.lat,g.lon],q)}catch(er){$('#nearStatus').textContent='"'+q+'" bulunamadı. Başka bir yazım deneyin.'}};
 $('#radius').onchange=()=>{if(nearCenter)loadNear(nearCenter,$('#nearQ').value.trim()||'Konumunuz')};
 
 /* ---------- konum ---------- */
@@ -363,7 +370,7 @@ function addPoint(p,insertSmart){
 }
 $('#addForm').onsubmit=async e=>{e.preventDefault();const q=$('#addQ').value.trim();if(!q)return;
   if(/^konum/i.test(q)&&me){addPoint({n:'Konumum',lat:me[0],lon:me[1]});$('#addQ').value='';return}
-  try{$('#routeStatus').textContent='"'+q+'" aranıyor…';const g=await geocode(q);addPoint({n:q,lat:g.lat,lon:g.lon});$('#addQ').value='';$('#routeStatus').textContent=pts.length<2?'Bir durak daha ekleyin.':'Rotayı oluştur\'a basın.'}
+  try{const h=aliasHit(q);if(h){addPoint({n:h.n,lat:h.lat,lon:h.lon});$('#addQ').value='';return}$('#routeStatus').textContent='"'+q+'" aranıyor…';const g=await geocode(q);addPoint({n:q,lat:g.lat,lon:g.lon});$('#addQ').value='';$('#routeStatus').textContent=pts.length<2?'Bir durak daha ekleyin.':'Rotayı oluştur\'a basın.'}
   catch(er){$('#routeStatus').textContent='"'+q+'" bulunamadı.'}};
 $('#pts').onclick=e=>{const b=e.target.closest('[data-rm]');if(b){pts.splice(+b.dataset.rm,1);renderPts()}};
 $('#presetUrfa').onclick=()=>{pts=[{n:'Gaziantep',lat:37.0662,lon:37.3833},{n:'Göbeklitepe',lat:37.2233,lon:38.9224},{n:'Balıklıgöl, Şanlıurfa',lat:37.1477,lon:38.7844}];$('#dep').value='07:00';renderPts();buildRoute()};
@@ -538,12 +545,102 @@ document.addEventListener('click',e=>{
   const tab=e.target.closest('.tab');if(tab){go(tab.dataset.v);return}
   const ch=e.target.closest('.chip');if(ch){const k=ch.dataset.cat;filt[k]=filt[k]?0:1;store.set('filt',filt);chips();renderList('near');renderList('along');return}
   const it=e.target.closest('.it');
-  if(it){const key=it.dataset.list+it.dataset.id;open=open===key?null:key;
+  if(it&&it.dataset.list){const key=it.dataset.list+it.dataset.id;open=open===key?null:key;
     if(it.dataset.list==='guide')renderGuide();else renderList(it.dataset.list);
     const again=document.querySelector('.it[data-id="'+it.dataset.id+'"][data-list="'+it.dataset.list+'"]');again&&again.scrollIntoView({block:'nearest'});
   }
 });
 $('#clearBtn').onclick=()=>{pts=[];route=null;along=[];routeLayer.clearLayers();renderPts();renderList('along');$('#sum').hidden=true;$('#routeTools').hidden=true;history.replaceState(null,'',location.pathname)};
+
+/* ---------- BUGÜN: rehberli gezi ---------- */
+const norm=s=>String(s||'').toLocaleLowerCase('tr').replace(/ı/g,'i').replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ş/g,'s').replace(/ö/g,'o').replace(/ç/g,'c').replace(/[^a-z0-9]/g,'');
+const ALIAS={gol:['balikligol','balikli','halilurrahman','halilrahman'],gobekli:['gobeklitepe','gobekli'],halfeti:['halfeti','batiksehir','savasan'],kale:['urfakalesi','sanliurfakalesi'],harran:['harran'],karahan:['karahantepe']};
+function aliasHit(q){const n=norm(q);if(n.length<4)return null;return G.find(p=>p.lat!=null&&(norm(p.n).startsWith(n)||n.startsWith(norm(p.n))||(ALIAS[p.id]||[]).some(a=>n.includes(a))))||null}
+async function wikiNear(center,r){
+  const j=await fetchJ('https://tr.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord='+center[0]+'%7C'+center[1]+'&gsradius='+Math.min(Math.max(r,1000),10000)+'&gslimit=60&format=json&origin=*',{},1,15000);
+  return (j.query&&j.query.geosearch||[]).map(g=>({id:'w'+g.pageid,n:g.title,lat:g.lat,lon:g.lon,c:'hist',sub:'Vikipedi maddesi',tags:{wikipedia:'tr:'+g.title},d:g.dist}));
+}
+const TODAY=[
+{id:'t0',t:'drive',n:'Gaziantep → Halfeti',min:90,km:'~110 km',to:'Halfeti Marina',
+ say:'Nizip ve Birecik üzerinden gidiyoruz. Birecik\'te Fırat\'ı geçerken sağda nehrin geniş yatağına bakın; burası Mezopotamya ile Anadolu arasındaki tarihî geçitlerden biri. Birecik, dünyada nesli tükenme tehlikesindeki kelaynak kuşlarının üretildiği istasyonla da bilinir. Halfeti\'de arabayı marina yakınındaki otoparklara bırakın.'},
+{id:'halfeti',t:'stop',n:'Halfeti ve Rumkale (tekne turu)',min:150,to:'Halfeti Marina',img:'Old_Halfeti_05.jpg',by:'Bernard Gagnon',
+ sec:[
+ ['Halfeti\'nin hikâyesi','Halfeti, Fırat\'ın doğu kıyısında, Şanlıurfa\'ya bağlı bir ilçe. 2000 yılında Birecik Barajı su tutunca eski ilçenin önemli bir kısmı ve çevresindeki köyler baraj gölünün altında kaldı; ilçe merkezi bugünkü Yeni Halfeti\'ye taşındı. Eski Halfeti\'nin nehre bakan taş evleri bu yüzden bugün yarı yarıya suyun içinden yükselir. 2013\'te uluslararası Cittaslow, yani Sakin Şehir unvanı aldı.'],
+ ['Batık köy: Savaşan','Tekne turunun en çok fotoğraflanan durağı Savaşan köyü. Köyün camisinin yalnızca minaresi ve üst kısmı suyun üzerinde kaldı; çevresinde terk edilmiş taş evler var. Eski Halfeti\'deki Ulu Cami\'nin de bir bölümü sular altında.'],
+ ['Rumkale: nehrin üzerindeki kale','Karşı kıyıda, Fırat ile Merzimen Çayı\'nın birleştiği dik kayalığın üstündeki kale Rumkale. Adı "Roma kalesi" demek; Ermeni kaynaklarında Hromkla diye geçer. 1116\'da Haçlı Urfa Kontu II. Baudouin kaleyi alıp kontluğa kattı. Yaklaşık 1150\'den 1292\'ye kadar Ermeni Katolikosluğunun, yani Ermeni kilisesinin ruhani liderliğinin merkezi oldu. Katolikos Aziz Nerses Şnorhali\'nin (1166-1173) döneminde burada el yazmaları toplanıp çoğaltıldı, kale bir kültür merkezine dönüştü; 1179\'da önemli bir kilise konsili burada toplandı. 28 Haziran 1292\'de Memlük Sultanı Eşref Halil kaleyi kuşatarak aldı ve adı bir süre Kal\'atü\'l-Müslimin oldu. 1516\'da Osmanlı topraklarına katıldı.'],
+ ['Karagül','Halfeti, kendine özgü koyu kırmızı, siyaha çalan karagülüyle ünlü. Rengin bölgenin toprağı ve suyuyla ilgili olduğu söylenir. Kasım-aralık, gülün görülebildiği dönemlerden biri; çarşıda karagül fidesi ve gül ürünleri bulabilirsiniz.']],
+ see:['Marinadan tekneye binin; tur yaklaşık 1,5 saat sürer','Yolda Kız Mağarası ve kayaya oyulmuş mağara evlerine bakın','Rumkale\'yi tekneden fotoğraflayın; en iyi açı nehrin ortasından','Savaşan köyünde kısa mola: batık minare ve terk edilmiş evler','Dönüşte Eski Halfeti\'nin taş sokaklarında yürüyün','Öğle yemeği için nehir kenarındaki lokantalarda yöreye özgü şabut balığını deneyin'],
+ tip:'Tekne fiyatını binmeden önce sorun; turlar ve fiyatlar kaptana göre değişir. Can yeleği isteyin.'},
+{id:'t1',t:'drive',n:'Halfeti → Göbeklitepe',min:110,km:'~145 km',to:'Göbeklitepe Karşılama Merkezi',
+ say:'Birecik\'e geri dönüp otoyoldan Şanlıurfa\'ya, oradan şehrin kuzeydoğusundaki Örencik yönüne gidiyoruz. Navigasyonu ören yerine değil, Karşılama Merkezi\'ne kurun.'},
+{id:'gobekli',t:'stop',n:'Göbeklitepe',min:120,to:'Göbeklitepe Karşılama Merkezi',img:'Archäologiepark_Göbekli_Tepe.jpg',by:'Philrock',
+ sec:[
+ ['Neden bu kadar önemli?','Göbeklitepe, yaklaşık 12 bin yıl önce, MÖ 9600 ile 8200 arasında, insanlar henüz çanak çömlek yapmadan ve tarım yeni başlarken inşa edilmiş anıtsal yapılar topluluğu. Avcı-toplayıcıların böyle büyük taş yapılar inşa edebildiğini göstermesi, insanlık tarihine bakışı değiştirdi. 1 Temmuz 2018\'de UNESCO Dünya Mirası Listesi\'ne girdi.'],
+ ['Nasıl bulundu?','Alan 1963\'te İstanbul ve Chicago üniversitelerinin yüzey araştırmasında fark edildi, ama o zaman önemi anlaşılmadı. 1995\'te Alman Arkeoloji Enstitüsü ve Şanlıurfa Müzesi, Prof. Klaus Schmidt başkanlığında kazılara başladı. Schmidt 2014\'te hayatını kaybetti; kazılar bugün Prof. Necmi Karul başkanlığında sürüyor.'],
+ ['Yapılar ve dikilitaşlar','Yapılar daire ya da oval planlı. Kenarlarda taş duvarlarla birbirine bağlanan T biçimli dikilitaşlar, ortada ise karşılıklı duran iki büyük dikilitaş var. Dikilitaşların boyu 3 ila 6 metre, ağırlıkları 40 ila 60 ton. T biçiminin stilize insan bedeni olduğu düşünülüyor: üst kısım baş, gövde ise bedendir.'],
+ ['D yapısı: bakmanız gerekenler','Koruma çatısı altında en iyi korunmuş yapı D yapısı. Ortadaki iki büyük taş 18 ve 31 numaralı dikilitaşlar. 18 numaranın yan yüzlerinde kollar, önde birleşen eller, bir kemer ve kemerden sarkan tilki postu oyulmuş; yani bu taşlar açıkça insan gibi tasvir edilmiş. Duvardaki 43 numaralı dikilitaş "Akbaba Taşı" olarak bilinir: üç yüzü kabartmalarla dolu, akbaba, akrep, kuşlar ve başka hayvanlar ile bir insan figürü içerir.'],
+ ['Hayvan figürleri','Taşlarda tilki, yaban domuzu, yılan, turna gibi kuşlar, akrep ve yırtıcı hayvanlar var. Bunlar o dönemin insanlarının inanç dünyasına ve çevrelerindeki doğaya dair ipuçları veriyor.'],
+ ['Tapınak mı, yerleşim mi?','Klaus Schmidt burayı avcı-toplayıcıların bir araya geldiği bir kült merkezi olarak yorumladı. Son yıllardaki kazılarda su sarnıcı, yapı kalıntıları ve tahıl işlemeyle ilişkili olabilecek büyük taş tekneler de bulundu. Bu yüzden bugün araştırmacılar burayı törenlerin yapıldığı ama insanların yaşadığı bir yer olarak da değerlendiriyor. Jeofizik çalışmalarda henüz kazılmamış başka büyük yapılar ve yüzlerce dikilitaş tespit edildi; kazıların daha onlarca yıl süreceği öngörülüyor. Kazı ekibi, Göbeklitepe hakkında dolaşan bilimsel dayanağı olmayan iddialara karşı da uyarıyor.'],
+ ['Taş Tepeler','Göbeklitepe yalnız değil. Karahantepe başta olmak üzere bölgede aynı döneme ait başka yerleşimler de kazılıyor; bunlar topluca "Taş Tepeler" diye anılıyor.']],
+ see:['Karşılama Merkezi\'nde bilet alın (2026 tam bilet 450 TL, Müzekart geçerli) ve tanıtım sergisine 15-20 dk ayırın','Ücretsiz ring servisiyle ören yerine çıkın','Koruma çatısı altında yürüyüş yolunu saat yönünde izleyin','D yapısında 18 ve 31 numaralı merkez taşları ve 43 numaralı Akbaba Taşı\'nı bulun','Yeni yürüyüş güzergâhından Harran Ovası manzarasına bakın','Rüzgâr serttir; mont alın'],
+ tip:'Gişe kapanıştan yarım saat önce kapanır. Kasımda kış saatleri uygulanabildiği için 16:00\'dan geç kalmayın.'},
+{id:'t2',t:'drive',n:'Göbeklitepe → Balıklıgöl',min:25,km:'~18 km',to:'Balıklıgöl Şanlıurfa',
+ say:'Şehir merkezine dönüyoruz. Akşam saatinde Balıklıgöl çevresindeki otoparklar dolabilir; dolu ise Arkeoloji Müzesi / Haleplibahçe otoparkına bırakıp Gölbaşı Parkı üzerinden 10-15 dakika yürüyün.'},
+{id:'gol',t:'stop',n:'Balıklıgöl ve tarihî Urfa',min:150,to:'Balıklıgöl Şanlıurfa',img:'Balıklıgöl_Urfa2.jpg',by:'Anadolu',
+ sec:[
+ ['Şehrin hikâyesi','Urfa, antik çağda Edessa adıyla bilinen çok eski bir kent. Milattan önce 2. yüzyıldan milattan sonra 3. yüzyıla kadar Abgar hanedanının yönettiği Osrhoene Krallığı\'nın başkentiydi ve Hristiyanlığın erken merkezlerinden biri oldu. 7. yüzyılda Arapların eline geçti. 1098\'de Birinci Haçlı Seferi sonunda Doğu\'da kurulan ilk Haçlı devleti olan Urfa Kontluğu\'nun merkezi oldu. 24 Aralık 1144\'te Musul Atabegi İmadeddin Zengi şehri fethetti; bu olay İkinci Haçlı Seferi\'nin başlamasına yol açtı. "Şanlı" unvanını ise Kurtuluş Savaşı\'ndaki direnişi nedeniyle aldı.'],
+ ['Balıklıgöl efsanesi','Göl yaklaşık 150 metre uzunluğunda, 30 metre genişliğinde ve 3-5 metre derinliğinde; kaynak sularıyla beslenir. Rivayete göre Nemrut, Hz. İbrahim\'i kalenin üzerinden ateşe attırdı; ateş suya, odunlar balığa dönüştü. Bu yüzden göldeki sazanlar kutsal sayılır ve avlanmaz. Gölün diğer adı Halil-ür Rahman Gölü.'],
+ ['Ayn-ı Zeliha','Hemen yanındaki küçük göl Ayn-ı Zeliha. Efsaneye göre Nemrut\'un kızı Zeliha, Hz. İbrahim\'e inandığı için kendini de ateşe attı ve düştüğü yerde bu göl oluştu.'],
+ ['Göl çevresindeki yapılar','Kuzey kıyıdaki revaklı yapı Rızvaniye Camii ve Medresesi; 1736\'da Rakka Valisi Rızvan Ahmet Paşa yaptırdı. Güneybatı kıyısındaki Halil-ür Rahman Camii, 504\'te Meryem Ana\'ya adanmış bir kilisenin yerinde, kitabesine göre 1211-12\'de Eyyubi hükümdarı el-Melikü\'l-Eşref Musa tarafından yapıldı. Biraz güneydeki Mevlid-i Halil Camii 1523\'te Muhammed Salih Paşa\'nın yaptırdığı yapı; inanışa göre Hz. İbrahim avlusundaki mağarada doğdu.'],
+ ['Urfa Kalesi','Gölün güneyindeki tepede yükselen kale, yaygın görüşe göre 812-814 yıllarında Abbasiler döneminde yapıldı. Tepedeki Korint başlıklı iki sütun ise kaleden çok daha eski, Edessa Krallığı dönemine ait; halk arasında "Nemrut\'un tahtı" ya da Hz. İbrahim\'in fırlatıldığı mancınığın direkleri diye anlatılır.'],
+ ['Akşam: çarşı ve sofra','Göl çevresinden tarihî çarşıya yürüyün. Gümrük Hanı, 1563\'te Urfa Sancakbeyi Halhallı Behram Paşa tarafından yaptırıldı; avlusunda kahve ocakları ve tespihçiler var. Akşam yemeğinde Urfa kebabı, ciğer ya da lahmacun; kahve için mırra.']],
+ see:['Gölbaşı Parkı\'ndan girip önce Ayn-ı Zeliha\'yı görün','Balıklıgöl çevresinde yürüyün; balık yemi satılır','Rızvaniye ve Halil-ür Rahman camilerini dışarıdan inceleyin','Mevlid-i Halil Camii ve mağara (kıyafet kuralı: omuz ve diz kapalı, kadınlar için başörtüsü)','Gece göl ışıklandırılır; fotoğraf için en güzel saat','Gümrük Hanı ve Kapalı Çarşı (Balıklıgöl\'den 8-10 dk yürüme)'],
+ tip:'Kale ve müzeler akşam kapalı olabilir. Kaleye çıkmak isterseniz gün ışığında gidin.'},
+{id:'t3',t:'drive',n:'Şanlıurfa → Gaziantep',min:100,km:'~145 km',to:'Gaziantep',
+ say:'Dönüş otoyoldan. HGS ücreti otomobil için tek yön 101,65 TL. Yorgunsanız Birecik\'teki dinlenme tesislerinde mola verin.'}
+];
+let tOpen=null,speaking=null;
+function tTimes(){
+  const [h,m]=(store.get('tStart','09:00')).split(':').map(Number);let t=h*60+m;
+  return TODAY.map(s=>{const a=t;t+=s.min;return [a,t]});
+}
+const hm=x=>String(Math.floor(x/60)%24).padStart(2,'0')+':'+String(x%60).padStart(2,'0');
+function renderToday(){
+  const T=tTimes();
+  $('#todayList').innerHTML=TODAY.map((s,i)=>{
+    const op=tOpen===s.id;
+    const head='<button class="it" data-today="'+s.id+'" aria-expanded="'+op+'"><span class="d" style="background:'+(s.t==='drive'?'#c98a12':'#0b4e4a')+'"></span><span><b>'+esc(s.n)+'</b><small>'+(s.t==='drive'?'Araçla · '+s.km+' · ~'+fMin(s.min*60):'Gezi · ~'+fMin(s.min*60)+' ayırın')+'</small></span><span class="km">'+hm(T[i][0])+'<small>'+hm(T[i][1])+'</small></span></button>';
+    if(!op)return head;
+    const nav='https://www.google.com/maps/dir/?api=1&travelmode=driving&destination='+encodeURIComponent(s.to);
+    const yn='https://yandex.com.tr/maps/?rtext=~'+encodeURIComponent(s.to)+'&rtt=auto';
+    let body='';
+    if(s.t==='drive')body='<p style="margin:0 0 8px">'+esc(s.say)+'</p>';
+    else body=(s.img?'<img src="https://commons.wikimedia.org/wiki/Special:FilePath/'+encodeURIComponent(s.img)+'?width=900" alt="'+esc(s.n)+'" loading="lazy" onerror="this.remove()"><div class="cr">Foto: '+esc(s.by)+' / Wikimedia Commons</div>':'')+
+      s.sec.map(([h,p])=>'<h4 style="margin:12px 0 4px;font-size:16px">'+esc(h)+'</h4><p style="margin:0">'+esc(p)+'</p>').join('')+
+      '<h4 style="margin:12px 0 4px;font-size:16px">Gezerken sırasıyla</h4><ol style="margin:0;padding-left:20px">'+s.see.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ol>'+
+      '<div class="tip" style="margin:10px 0 0"><b>Not</b>'+esc(s.tip)+'</div>';
+    return head+'<div class="det">'+body+'<div class="btns"><a class="btn sm" target="_blank" rel="noopener" href="'+nav+'">Google ile yol tarifi</a><a class="btn sm alt" target="_blank" rel="noopener" href="'+yn+'">Yandex ile</a><button class="btn sm red" data-speak="'+s.id+'">'+(speaking===s.id?'Anlatımı durdur':'Sesli anlat')+'</button></div></div>';
+  }).join('');
+}
+function speak(id){
+  if(!('speechSynthesis' in window)){alert('Bu tarayıcı sesli anlatımı desteklemiyor.');return}
+  speechSynthesis.cancel();
+  if(speaking===id){speaking=null;renderToday();return}
+  const s=TODAY.find(x=>x.id===id);
+  const txt=s.t==='drive'?s.n+'. '+s.say:s.n+'. '+s.sec.map(([h,p])=>h+'. '+p).join(' ');
+  const parts=txt.match(/[^.!?]+[.!?]*/g)||[txt];
+  const v=speechSynthesis.getVoices().find(x=>/^tr/i.test(x.lang));
+  parts.forEach((p,i)=>{const u=new SpeechSynthesisUtterance(p.trim());u.lang='tr-TR';if(v)u.voice=v;u.rate=.95;if(i===parts.length-1)u.onend=()=>{if(speaking===id){speaking=null;renderToday()}};speechSynthesis.speak(u)});
+  speaking=id;renderToday();
+}
+$('#tStart').value=store.get('tStart','09:00');
+$('#tStart').onchange=()=>{store.set('tStart',$('#tStart').value||'09:00');renderToday()};
+$('#todayList').addEventListener('click',e=>{
+  const sp=e.target.closest('[data-speak]');if(sp){speak(sp.dataset.speak);return}
+  const it=e.target.closest('[data-today]');if(it){tOpen=tOpen===it.dataset.today?null:it.dataset.today;renderToday();document.querySelector('[data-today="'+it.dataset.today+'"]').scrollIntoView({block:'nearest'})}
+});
+$('#todayRoute').onclick=()=>{pts=[{n:'Gaziantep',lat:37.0662,lon:37.3833},{n:'Halfeti',lat:37.2452,lon:37.8648},{n:'Göbeklitepe',lat:37.2233,lon:38.9224},{n:'Balıklıgöl, Şanlıurfa',lat:37.1477,lon:38.7844}];$('#dep').value=$('#tStart').value||'09:00';renderPts();go('rota');buildRoute()};
+renderToday();
 
 /* ---------- başlat ---------- */
 chips();
