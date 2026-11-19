@@ -1160,7 +1160,7 @@ async function wdPlaces(bb,minSl,lim,ms,tries){
   }
   const out=[];
   for(const o of Object.values(by)){
-    if(/^Q\d+$/.test(o.n)||/\bgar[ıi](?![a-zçğıöşü])|istasyon|havaliman|havaalan|stadyum|üniversite|hastane|lisesi|okulu|terminal|otogar/i.test(o.n))continue;
+    if(/^Q\d+$/.test(o.n)||/\bgar[ıi](?![a-zçğıöşü])|istasyon|havaliman|havaalan|stadyum|üniversite|hastane|lisesi|okulu|terminal|otogar/i.test(o.n.toLocaleLowerCase('tr')))continue;
     const tls=[...o.tls];if(tls.some(t=>/\bdil\b|dili\b|lehçe|dil ailesi|etnik|\bhalk\b|halkı|\bdin\b|mezhep|savaş|muharebe|kuşatma|deprem|kaza|faciası|olay|antlaşma|hanedan|devlet\b|imparatorluk|eyalet|krallık/i.test(t)))continue;
     let kind=null,tl='';for(const t of tls){const k=kindOf(t);if(k){kind=k;tl=t;break}}
     if(!kind){const k=kindOf(o.n);if(k&&k!=='nature'){kind=k;tl=''}}
@@ -1325,7 +1325,7 @@ async function plRun(fromNew){
     }
     PL.lastP=P;PL.lastDays=days;PL.lastTot=tot;
     plRender(P,days,tot);
-    PL.region={n:P.to.n,c:[P.to.lat,P.to.lon]};here.auto=0;here.c=null;
+    {const fs=days.flatMap(D=>D.items).find(x=>x.k==='stop');PL.region={n:P.to.n,c:fs?[fs.p.lat,fs.p.lon]:[P.to.lat,P.to.lon]}}here.auto=0;here.c=null;
     {const hb=$('#herePlan');hb.hidden=false;hb.textContent='🧭 '+P.to.n+' çevresini keşfet'}
     st.textContent=P.to.n+' için '+PL.pool.filter(p=>P.ints.includes(p.kind)).length+' aday yer içinden en önemlileri seçildi.';
     store.set('plan',{f:$('#plFrom').value,t:toQ,d:P.days,p:P.pace,i:P.ints,r:P.ret,s:$('#plTime').value,e:$('#plEnd').value,o:PL.order||undefined});
