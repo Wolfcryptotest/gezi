@@ -1026,8 +1026,9 @@ async function hereTimes(c,items){
     const pts=[c,...arr.map(p=>[p.lat,p.lon])].map(x=>(+x[1]).toFixed(5)+','+(+x[0]).toFixed(5)).join(';');
     const j=await fetchJ(OSRM[mode].replace('/route/','/table/')+pts+'?sources=0&annotations=duration,distance',{},2,15000);
     if(tok!==here.tt)return;const du=j.durations&&j.durations[0],di=j.distances&&j.distances[0];if(!du)return;
-    arr.forEach((p,i)=>{const t=du[i+1],m=di&&di[i+1];if(t==null)return;if(mode==='foot'){p.wt=t;p.wd=m}else{p.ct=t;p.cd=m}})};
-  await Promise.allSettled([tab('foot',near),tab('car',far)]);
+    arr.forEach((p,i)=>{const t=du[i+1],m=di&&di[i+1];if(t==null||(m!=null&&m<p.d*0.9))return;if(mode==='foot'){p.wt=t;p.wd=m}else{p.ct=t;p.cd=m}})};
+  const tab2=(m,a)=>tab(m,a).catch(()=>new Promise(r=>setTimeout(r,1800)).then(()=>tok===here.tt&&tab(m,a)));
+  await Promise.allSettled([tab2('foot',near),tab2('car',far)]);
   if(tok===here.tt)renderHereList();
 }
 function renderHereCats(){
