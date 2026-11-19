@@ -322,9 +322,10 @@ async function overpass(q,ms=45000){
   try{return await Promise.any(OVERPASS.map(u=>fetchJ(u,{method:'POST',body},1,ms).then(j=>{if(!j||!j.elements)throw 0;return j})))}catch(e){throw new Error('overpass')}
 }
 async function geocode(q){
-  const j=await fetchJ('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=tr&accept-language=tr&q='+encodeURIComponent(q));
+  const j=await fetchJ('https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=tr&accept-language=tr&q='+encodeURIComponent(q));
   if(!j.length)throw new Error('bulunamadı');
-  return{n:q,lat:+j[0].lat,lon:+j[0].lon,full:j[0].display_name};
+  const x=(j[0].class==='boundary'&&j.find(r=>r.class==='place'&&/city|town|village/.test(r.type)))||j[0];
+  return{n:q,lat:+x.lat,lon:+x.lon,full:x.display_name};
 }
 const OSRM={car:'https://routing.openstreetmap.de/routed-car/route/v1/driving/',foot:'https://routing.openstreetmap.de/routed-foot/route/v1/driving/'};
 async function osrm(mode,pts,full){
