@@ -1021,10 +1021,10 @@ function tLabel(p){
   return out.join('<br>')}
 async function hereTimes(c,items){
   const tok=here.tt=(here.tt||0)+1;
-  const near=items.filter(p=>p.d<=4000).slice(0,70),far=items.filter(p=>p.d>1200).slice(0,70);
+  const near=items.filter(p=>p.d<=4000).slice(0,70),far=items.slice(0,70);
   const tab=async(mode,arr)=>{if(!arr.length)return;
     const pts=[c,...arr.map(p=>[p.lat,p.lon])].map(x=>(+x[1]).toFixed(5)+','+(+x[0]).toFixed(5)).join(';');
-    const j=await fetchJ(OSRM[mode].replace('/route/','/table/')+pts+'?sources=0&annotations=duration,distance',{},1,15000);
+    const j=await fetchJ(OSRM[mode].replace('/route/','/table/')+pts+'?sources=0&annotations=duration,distance',{},2,15000);
     if(tok!==here.tt)return;const du=j.durations&&j.durations[0],di=j.distances&&j.distances[0];if(!du)return;
     arr.forEach((p,i)=>{const t=du[i+1],m=di&&di[i+1];if(t==null)return;if(mode==='foot'){p.wt=t;p.wd=m}else{p.ct=t;p.cd=m}})};
   await Promise.allSettled([tab('foot',near),tab('car',far)]);
@@ -1050,12 +1050,9 @@ const OSM_SKIP=/^(memorial|wayside_cross|wayside_shrine|boundary_stone|milestone
 async function hereOSM(c){
   const a='(around:2500,'+(+c[0]).toFixed(5)+','+(+c[1]).toFixed(5)+')';
   const q='[out:json][timeout:25];(nwr["historic"]["name"]'+a+';nwr["tourism"="museum"]["name"]'+a+';nwr["heritage"]["name"]'+a+';);out center tags 200;';
-  for(const u of ['https://overpass-api.de/api/interpreter','https://maps.mail.ru/osm/tools/overpass/api/interpreter']){
-    try{const ctl=new AbortController();const tm=setTimeout(()=>ctl.abort(),30000);
-      const r=await fetch(u,{method:'POST',body:'data='+encodeURIComponent(q),signal:ctl.signal});clearTimeout(tm);
-      if(!r.ok)continue;const j=await r.json();if(j&&j.elements)return j.elements}catch(e){}
-  }
-  return null;
+  const ctl=new AbortController();const tm=setTimeout(()=>ctl.abort(),40000);
+  const one=u=>fetch(u,{method:'POST',body:'data='+encodeURIComponent(q),signal:ctl.signal}).then(r=>r.ok?r.json():Promise.reject()).then(j=>j&&j.elements?j.elements:Promise.reject());
+  try{const els=await Promise.any(['https://overpass-api.de/api/interpreter','https://maps.mail.ru/osm/tools/overpass/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://overpass.private.coffee/api/interpreter'].map(one));ctl.abort();clearTimeout(tm);return els}catch(e){clearTimeout(tm);return null}
 }
 function osmMerge(c,els){
   const core=s=>norm(s).replace(/camii|cami|muzesi|kalesi|tarihi/g,'');let n=0;
