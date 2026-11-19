@@ -950,7 +950,7 @@ async function wikiGeo(c,r,lim){
   const ps=Object.values(j.query&&j.query.pages||{}).filter(p=>p.coordinates&&p.coordinates[0]).map(p=>({pageid:p.pageid,title:p.title,desc:(p.description||'').trim(),lat:p.coordinates[0].lat,lon:p.coordinates[0].lon})).map(g=>({...g,dist:hav(c,[g.lat,g.lon])}));
   const ok=ps.filter(g=>!NONHIST.test(g.title.toLocaleLowerCase('tr'))&&!NONDESC.test(g.desc)&&!DIST.test(g.title)&&!dupe(g)&&!names.has(norm(g.title)));
   ok.forEach(g=>{g.hk=g.desc?(HISTD.test(g.desc)||HISTKW.test(g.title)):HISTKW.test(g.title)});
-  const hk=ok.filter(g=>g.hk),use=hk.length>=6?hk:ok;
+  const use=ok.filter(g=>g.hk);
   return use.sort((a,b)=>a.dist-b.dist).map(g=>({id:'w'+g.pageid,n:g.title,lat:g.lat,lon:g.lon,c:g.hk?'hist':'view',sub:g.desc?g.desc.charAt(0).toLocaleUpperCase('tr')+g.desc.slice(1):'Vikipedi',w:g.title,wl:l,hk:g.hk,tags:{wikipedia:l+':'+g.title},d:g.dist}));
 }
 async function wikiInfo(l,title){
